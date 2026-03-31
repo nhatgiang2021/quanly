@@ -1,0 +1,2945 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Manager Pro</title>
+<script type="text/javascript" nonce="95fc8c58a259401f8a4c6931d05" src="//local.adguard.org?ts=1774943408796&amp;type=content-script&amp;dmn=aistudio.google.com&amp;url=https%3A%2F%2Faistudio.google.com%2F_%2Fupload%2F5d39e6d8-7181-4894-a287-6ab485b8bdca%2Ffile%2F206abce1e3d802894ea9dd189445305b141c48571a9e4300bcffff67ffb977df&amp;app=ai.perplexity.comet&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1&amp;stealth=1&amp;st-push&amp;st-loc&amp;st-java&amp;st-dnt"></script><script type="text/javascript" nonce="95fc8c58a259401f8a4c6931d05" src="//local.adguard.org?ts=1774943408796&amp;name=AdGuard%20Extra&amp;type=user-script"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0F1117; --surf: #1A1D27; --card: #22263A; --bord: #2A2D3E;
+  --txt: #F1F5F9; --mut: #64748B;
+  --pos: #22C55E; --neg: #EF4444; --warn: #F59E0B; --info: #4F8EF7;
+  --b-grow: #4F8EF7; --b-flow: #22C55E; --b-surf: #F59E0B; --b-safe: #A78BFA;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+body { background: var(--bg); color: var(--txt); display: flex; height: 100vh; overflow: hidden; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--bord); border-radius: 3px; }
+
+/* Layout */
+.sb { width: 240px; background: var(--surf); border-right: 1px solid var(--bord); display: flex; flex-direction: column; transition: 0.3s; z-index: 10; }
+.sb-hdr { padding: 20px; font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid var(--bord); color: var(--info); }
+.nav { flex: 1; overflow-y: auto; padding: 10px 0; }
+.ni { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--mut); transition: 0.2s; }
+.ni:hover, .ni.act { color: var(--txt); background: var(--card); border-right: 3px solid var(--info); }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.hdr { padding: 15px 24px; background: var(--surf); border-bottom: 1px solid var(--bord); display: flex; justify-content: space-between; align-items: center; }
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+.tab { display: none; animation: fadeIn 0.2s ease; }
+.tab.act { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* UI Elements */
+.card { background: var(--card); border: 1px solid var(--bord); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+h1, h2, h3 { margin-bottom: 15px; font-weight: 600; }
+.text-mut { color: var(--mut); font-size: 0.9rem; }
+.text-pos { color: var(--pos); } .text-neg { color: var(--neg); } .text-warn { color: var(--warn); } .text-info { color: var(--info); }
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
+.bg-grow { background: rgba(79,142,247,0.2); color: var(--b-grow); }
+.bg-flow { background: rgba(34,197,94,0.2); color: var(--b-flow); }
+.bg-surf { background: rgba(245,158,11,0.2); color: var(--b-surf); }
+.bg-safe { background: rgba(167,139,250,0.2); color: var(--b-safe); }
+.bg-pos { background: rgba(34,197,94,0.2); color: var(--pos); }
+.bg-warn { background: rgba(245,158,11,0.2); color: var(--warn); }
+.bg-neg { background: rgba(239,68,68,0.2); color: var(--neg); }
+
+/* Forms & Tables */
+table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--bord); }
+th { color: var(--mut); font-weight: 500; font-size: 0.9rem; }
+input, select, textarea { background: var(--bg); color: var(--txt); border: 1px solid var(--bord); padding: 10px 12px; border-radius: 8px; outline: none; width: 100%; margin-bottom: 15px; }
+input:focus, select:focus { border-color: var(--info); }
+.btn { background: var(--surf); color: var(--txt); cursor: pointer; border: 1px solid var(--bord); padding: 10px 16px; border-radius: 8px; font-weight: 500; display: inline-block; text-align: center; }
+.btn:hover { background: var(--bord); }
+.btn.pri { background: var(--info); color: #fff; border: none; }
+.btn.pri:hover { background: #3b71ca; }
+.btn.dan { background: rgba(239,68,68,0.1); color: var(--neg); border-color: var(--neg); }
+.btn.dan:hover { background: var(--neg); color: #fff; }
+
+/* Components */
+.fab { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; border-radius: 50%; background: var(--info); color: #fff; display: flex; justify-content: center; align-items: center; font-size: 28px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 100; border: none; transition: 0.2s; }
+.fab:hover { transform: scale(1.05); }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
+.modal { background: var(--card); padding: 24px; border-radius: 16px; width: 90%; max-width: 500px; border: 1px solid var(--bord); max-height: 90vh; overflow-y: auto; }
+.toast-box { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+.toast { background: var(--card); border: 1px solid var(--bord); padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); animation: slideUp 0.3s ease forwards; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.prog-bg { background: var(--bg); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.prog-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+.flex { display: flex; gap: 10px; align-items: center; }
+.justify-between { justify-content: space-between; }
+.mt-10 { margin-top: 10px; } .mb-10 { margin-bottom: 10px; } .mb-20 { margin-bottom: 20px; }
+
+@media (max-width: 1024px) { .sb { width: 60px; } .sb-hdr, .ni span { display: none; } .ni { justify-content: center; padding: 15px 0; } }
+</style>
+</head>
+<body>
+
+<div class="sb">
+  <div class="sb-hdr">Wealth Pro</div>
+  <div class="nav" id="nav-links"></div>
+</div>
+
+<div class="main">
+  <div class="hdr">
+    <div id="h-date" class="text-mut"></div>
+    <div class="flex">
+      <div id="h-nw" style="font-size: 1.2rem; font-weight: bold; color: var(--pos);"></div>
+      <div id="h-bkp" class="badge" style="background: var(--bg);"></div>
+    </div>
+  </div>
+  
+  <div class="content" id="tab-content">
+    <!-- Tabs injected via JS -->
+  </div>
+</div>
+
+<button class="fab" onclick="openFab()">+</button>
+<div class="toast-box" id="toasts"></div>
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal-content"></div></div>
+
+<script>
+// --- UTILS ---
+const $ = q => document.querySelector(q);
+const $$ = q => document.querySelectorAll(q);
+const fmt = n => new Intl.NumberFormat('vi-VN').format(Math.round(n||0)) + ' ₫';
+const ls = localStorage;
+const get = k => JSON.parse(ls.getItem('wm_'+k) || 'null');
+const set = (k,v) => ls.setItem('wm_'+k, JSON.stringify(v));
+const genId = (p) => p + '_' + Date.now() + Math.random().toString(36).substr(2, 5);
+const daysBetween = (d1, d2) => Math.round((new Date(d2) - new Date(d1)) / (1000 * 60 * 60 * 24));
+
+// --- DATA SCHEMA & SEED ---
+const BUCKETS = { 'Tăng trưởng vốn': 'bg-grow', 'Dòng tiền': 'bg-flow', 'Lướt sóng': 'bg-surf', 'Bảo đảm': 'bg-safe' };
+const BUCKET_COLORS = { 'Tăng trưởng vốn': '#4F8EF7', 'Dòng tiền': '#22C55E', 'Lướt sóng': '#F59E0B', 'Bảo đảm': '#A78BFA' };
+
+function initData() {
+  if(ls.getItem('wm_initialized')) return;
+  
+  set('cash_accounts', [
+    {id:'a1', name:'Agribank', type:'bank', isActive:true},
+    {id:'a2', name:'Techcombank', type:'bank', isActive:true},
+    {id:'a3', name:'MoMo', type:'ewallet', isActive:true},
+    {id:'a4', name:'Tiền mặt', type:'cash', isActive:true}
+  ]);
+  
+  set('categories', {
+    income: ["Lương","Thưởng","Cổ tức","Cho thuê","Dự án","Khác"],
+    expense: ["Ăn uống","Điện nước","Học phí","Giải trí","Y tế","Bảo hiểm","Đi lại","Mua sắm","Khác"]
+  });
+
+  const now = new Date();
+  const txs = [];
+  // Seed 14 months of transactions
+  for(let i=14; i>=0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 5);
+    txs.push({ id: genId('t'), date: d.toISOString(), type: 'income', incomeSource: 'salary', category: 'Lương', amount: 35000000, accountId: 'a2', description: 'Lương tháng' });
+    txs.push({ id: genId('t'), date: new Date(d.setDate(10)).toISOString(), type: 'expense', category: 'Ăn uống', amount: 8000000, accountId: 'a2', description: 'Sinh hoạt' });
+    if(i%3===0) txs.push({ id: genId('t'), date: new Date(d.setDate(15)).toISOString(), type: 'income', incomeSource: 'freelance', category: 'Dự án', amount: 45000000, accountId: 'a1', description: 'Dự án ngoài' });
+  }
+  set('transactions', txs);
+
+  set('assets', [
+    {id:'as1', name:'VNM', ticker:'VNM', assetType:'stock', bucket:'Tăng trưởng vốn', exchange:'HOSE', currentPrice: 68000},
+    {id:'as2', name:'Vinhomes', ticker:'VHM', assetType:'realestate', bucket:'Dòng tiền', exchange:'Other', currentPrice: 3000000000},
+    {id:'as3', name:'Tiết kiệm VCB 6T', assetType:'savings', bucket:'Bảo đảm', currentPrice: 1, interestRate: 5.5, termMonths: 6, startDate: new Date(now.getFullYear(), now.getMonth()-5, 1).toISOString(), maturityDate: new Date(now.getFullYear(), now.getMonth()+1, 1).toISOString(), interestType: 'simple'}
+  ]);
+
+  set('asset_transactions', [
+    {id:'at1', date: new Date(now.getFullYear()-1, 1, 1).toISOString(), assetId: 'as1', action: 'BUY', quantity: 1000, price: 65000, fee: 50000, totalCash: 65050000},
+    {id:'at2', date: new Date(now.getFullYear()-1, 2, 1).toISOString(), assetId: 'as2', action: 'BUY', quantity: 1, price: 3000000000, fee: 0, totalCash: 3000000000},
+    {id:'at3', date: new Date(now.getFullYear(), now.getMonth()-5, 1).toISOString(), assetId: 'as3', action: 'BUY', quantity: 100000000, price: 1, fee: 0, totalCash: 100000000}
+  ]);
+
+  set('liabilities', [
+    {id:'l1', name:'Vay mua nhà', type:'mortgage', totalAmount: 1500000000, remainingAmount: 1200000000, interestRate: 8.5, monthlyPayment: 15000000}
+  ]);
+
+  set('goals', [
+    {id:'g1', name:'Quỹ khẩn cấp', type:'emergency', targetAmount: 200000000, currentAmount: 140000000, deadline: new Date(now.getFullYear()+1, 0, 1).toISOString(), priority: 'high', linkedAssetId: 'as3'}
+  ]);
+
+  set('settings', {
+    geminiApiKey: '', incomeMode: 'irregular', rollingWindow: 3,
+    minAllocationTrigger: 5000000, passiveIncomeDefault: 'reinvest',
+    bucketTargets: { 'Tăng trưởng vốn':40, 'Dòng tiền':30, 'Lướt sóng':15, 'Bảo đảm':15 },
+    rebalanceThreshold: 10,
+    accounts: ['Cá nhân', 'Gia đình'],
+    autoBackupEnabled: true, lastBackupDate: now.toISOString()
+  });
+
+  set('recurring', [
+    {id:'r1', name:'Lương', type:'income', amount:35000000, category:'Lương', accountId:'a2', dayOfMonth:1, isActive:true, autoApply:true},
+    {id:'r2', name:'Tiền nhà', type:'expense', amount:8000000, category:'Điện nước', accountId:'a2', dayOfMonth:5, isActive:true, autoApply:true}
+  ]);
+
+  ls.setItem('wm_initialized', 'true');
+}
+initData();
+
+// Patch for existing data
+if (!get('allocation_rules')) {
+  set('allocation_rules', {
+    isActive: true,
+    buckets: [
+      {id: 'alloc_1', name: 'Chi tiêu SH', percentage: 50, color: '#64748B', type: 'expense_budget'},
+      {id: 'alloc_2', name: 'Tăng trưởng', percentage: 20, color: '#4F8EF7', type: 'investment_bucket'},
+      {id: 'alloc_3', name: 'Dòng tiền', percentage: 15, color: '#22C55E', type: 'investment_bucket'},
+      {id: 'alloc_4', name: 'Bảo đảm', percentage: 10, color: '#A78BFA', type: 'saving_goal'},
+      {id: 'alloc_5', name: 'Lướt sóng', percentage: 5, color: '#F59E0B', type: 'investment_bucket'}
+    ]
+  });
+  set('category_allocation_map', {
+    "Ăn uống":"alloc_1", "Điện nước":"alloc_1", "Học phí":"alloc_1", "Giải trí":"alloc_1",
+    "Y tế":"alloc_1", "Đi lại":"alloc_1", "Mua sắm":"alloc_1", "Bảo hiểm":"alloc_4", "Khác":"alloc_1"
+  });
+}
+
+// --- ENGINES ---
+function getMonthTransactions(month) {
+  return (get('transactions')||[]).filter(t => t.date.startsWith(month));
+}
+
+function getMonthIncome(month) {
+  return (get('transactions')||[])
+    .filter(t => t.date.startsWith(month) && t.type === 'income')
+    .reduce((s, t) => s + t.amount, 0);
+}
+
+function getMonthExpense(month) {
+  return (get('transactions')||[])
+    .filter(t => t.date.startsWith(month) && t.type === 'expense')
+    .reduce((s, t) => s + t.amount, 0);
+}
+
+function getCashAccountBalance(accountId) {
+  return (get('transactions')||[])
+    .filter(t => t.accountId === accountId)
+    .reduce((s, t) => t.type === 'income' ? s + t.amount : s - t.amount, 0);
+}
+
+function getCashBalance() {
+  return (get('cash_accounts')||[]).reduce((s, acc) => s + getCashAccountBalance(acc.id), 0);
+}
+
+function getCategoryAllocationId(category) {
+  const map = get('category_allocation_map') || {};
+  return map[category];
+}
+
+function getBucketSpent(allocationId, month) {
+  const rules = get('allocation_rules')?.buckets || [];
+  const bucket = rules.find(r => r.id === allocationId);
+  if (!bucket) return 0;
+
+  let spent = (get('transactions')||[])
+    .filter(t =>
+      t.type === 'expense' &&
+      t.date.startsWith(month) &&
+      getCategoryAllocationId(t.category) === allocationId
+    )
+    .reduce((s, t) => s + t.amount, 0);
+
+  if (bucket.type === 'investment_bucket' || bucket.type === 'saving_goal') {
+    const assets = get('assets') || [];
+    const linkedAssets = assets.filter(a => a.bucket === bucket.name).map(a => a.id);
+    
+    spent += (get('asset_transactions')||[])
+      .filter(t => 
+        t.action === 'BUY' &&
+        !t.isInitial &&
+        t.date.startsWith(month) &&
+        linkedAssets.includes(t.assetId)
+      )
+      .reduce((s, t) => s + t.totalCash, 0);
+  }
+
+  return spent;
+}
+
+function getAllocationPct(allocationId) {
+  const rules = get('allocation_rules');
+  if (!rules || !rules.buckets) return 0;
+  const b = rules.buckets.find(x => x.id === allocationId);
+  return b ? b.percentage : 0;
+}
+
+function getPrevMonth(month) {
+  let [y, m] = month.split('-').map(Number);
+  m -= 1; if(m < 1) { m = 12; y -= 1; }
+  return `${y}-${m.toString().padStart(2,'0')}`;
+}
+
+function sumIncomeForMonth(yyyymm) {
+  return getMonthIncome(yyyymm);
+}
+
+function getMonthBudgetBase(yyyymm) {
+  const actual = getMonthIncome(yyyymm);
+  if (actual > 0) return { base: actual, source: 'actual' };
+  const r = computeRollingBase(get('settings')?.rollingWindow || 3);
+  return { base: r.conservative, source: 'rolling_avg', stats: r };
+}
+
+function computeRollingBase(windowMonths = 3) {
+  const now = new Date();
+  const monthTotals = [];
+  for(let i=1; i<=windowMonths; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const m = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;
+    monthTotals.push(getMonthIncome(m));
+  }
+  const nonZero = monthTotals.filter(v => v > 0);
+  if(nonZero.length === 0) return { avg: 0, avgNonZero: 0, median: 0, min: 0, conservative: 0, volatility: 0 };
+  const sum = nonZero.reduce((a,b)=>a+b,0);
+  const avgNonZero = sum / nonZero.length;
+  nonZero.sort((a,b)=>a-b);
+  const median = nonZero.length % 2 === 0 ? (nonZero[nonZero.length/2 - 1] + nonZero[nonZero.length/2]) / 2 : nonZero[Math.floor(nonZero.length/2)];
+  const min = nonZero[0];
+  const conservative = median * 0.8;
+  const variance = nonZero.reduce((a,b)=>a+Math.pow(b-avgNonZero,2),0) / nonZero.length;
+  const stdDev = Math.sqrt(variance);
+  const volatility = avgNonZero > 0 ? (stdDev / avgNonZero) * 100 : 0;
+  return { avg: sum/windowMonths, avgNonZero, median, min, conservative, volatility };
+}
+
+function calcSavingsInterest(asset) {
+  const txs = (get('asset_transactions')||[]).filter(t => t.assetId === asset.id && t.action === 'BUY');
+  const principal = txs.reduce((s,t)=>s+t.totalCash, 0);
+  if(!principal || !asset.interestRate || !asset.startDate || !asset.maturityDate) return 0;
+  const rate = asset.interestRate / 100;
+  const days = Math.ceil((new Date(asset.maturityDate) - new Date(asset.startDate)) / (1000 * 60 * 60 * 24));
+  if (asset.interestType === 'simple') return principal * rate * days / 365;
+  return principal * (Math.pow(1 + rate, days/365) - 1);
+}
+
+function computeMonthlyBucket(allocId, yyyymm) {
+  const rules = get('allocation_rules')?.buckets || [];
+  const bucket = rules.find(r => r.id === allocId);
+  if (!bucket) return { baseAmount:0, source:'none', rolloverIn:0, effectiveBudget:0, spentAmount:0, rolloverOut:0, utilizationRate:0, status:'on_track', bucket:null };
+  const { base, source } = getMonthBudgetBase(yyyymm);
+  const baseAmount = Math.round(base * bucket.percentage / 100);
+  
+  const prevMonth = getPrevMonth(yyyymm);
+  const prevBase = getMonthBudgetBase(prevMonth).base;
+  const prevBaseAmount = Math.round(prevBase * bucket.percentage / 100);
+  const prevSpent = getBucketSpent(allocId, prevMonth);
+  const rolloverIn = Math.max(0, prevBaseAmount - prevSpent); 
+
+  const effectiveBudget = baseAmount + rolloverIn;
+  const spentAmount = getBucketSpent(allocId, yyyymm);
+  const rolloverOut = effectiveBudget - spentAmount;
+  
+  const rate = effectiveBudget > 0 ? spentAmount / effectiveBudget : 0;
+  let status = 'on_track';
+  if (rolloverOut > baseAmount * 0.2) status = 'surplus';
+  if (rate >= 0.85) status = 'warning';
+  if (rate >= 1.0) status = 'over_budget';
+  
+  return { baseAmount, source, rolloverIn, effectiveBudget, spentAmount, rolloverOut, utilizationRate: rate * 100, status, bucket };
+}
+
+function computeAssetPosition(assetId) {
+  const txns = (get('asset_transactions')||[])
+    .filter(t => t.assetId === assetId)
+    .sort((a,b) => a.date.localeCompare(b.date));
+
+  let holdingQty=0, totalCost=0, realizedPnL=0, totalDividends=0;
+
+  for (const t of txns) {
+    if (t.action === 'BUY') {
+      totalCost  += t.totalCash;
+      holdingQty += t.quantity;
+    }
+    if (t.action === 'SELL') {
+      const avg        = holdingQty > 0 ? totalCost / holdingQty : 0;
+      realizedPnL     += t.totalCash - avg * t.quantity;
+      totalCost       -= avg * t.quantity;
+      holdingQty      -= t.quantity;
+    }
+    if (t.action === 'DIVIDEND' || t.action === 'INTEREST')
+      totalDividends += t.totalCash;
+    if (t.action === 'FEE')
+      realizedPnL    -= t.totalCash;
+    if (t.action === 'SPLIT')
+      holdingQty     *= t.quantity;
+  }
+
+  const asset         = (get('assets')||[]).find(a => a.id === assetId) || {};
+  const avgCost       = holdingQty > 0 ? totalCost / holdingQty : 0;
+  const currentValue  = holdingQty * (asset.currentPrice || 0);
+  const unrealizedPnL = currentValue - totalCost;
+
+  return { holdingQty, avgCost, totalCost, currentValue,
+           realizedPnL, unrealizedPnL, totalDividends,
+           totalReturn: realizedPnL + unrealizedPnL + totalDividends };
+}
+
+function getBucketPortfolioValue(bucketName) {
+  return (get('assets')||[])
+    .filter(a => a.bucket === bucketName)
+    .reduce((s, a) => s + computeAssetPosition(a.id).currentValue, 0);
+}
+
+function getTotalPortfolioValue() {
+  return (get('assets')||[]).reduce((s, a) =>
+    s + computeAssetPosition(a.id).currentValue, 0);
+}
+
+function getNetWorth() {
+  const cash = getCashBalance();
+  const assetValue = getTotalPortfolioValue();
+  const liabilities = (get('liabilities')||[]).reduce((sum, l) => sum + l.remainingAmount, 0);
+  return { cash, assetValue, liabilities, netWorth: cash + assetValue - liabilities };
+}
+
+// --- UI CORE ---
+const TABS = [
+  {id: 't1', icon: '📊', name: 'Tổng Quan'},
+  {id: 't2', icon: '💸', name: 'Thu Chi'},
+  {id: 't3', icon: '🎯', name: 'Ngân Sách'},
+  {id: 't4', icon: '📈', name: 'Danh Mục ĐT'},
+  {id: 't5', icon: '🏦', name: 'Nợ & Mục Tiêu'},
+  {id: 't6', icon: '📑', name: 'Báo Cáo'},
+  {id: 't7', icon: '🤖', name: 'AI Insights'},
+  {id: 't8', icon: '⚙️', name: 'Cài Đặt'}
+];
+
+let currentTab = 't1';
+let charts = {};
+let t3_currentMonth = new Date().toISOString().slice(0, 7);
+let t3_subTab = 'A';
+
+function buildLayout() {
+  $('#nav-links').innerHTML = TABS.map(t => `<div class="ni ${t.id==='t1'?'act':''}" onclick="nav('${t.id}')">${t.icon} <span>${t.name}</span></div>`).join('');
+  $('#tab-content').innerHTML = TABS.map(t => `<div id="${t.id}" class="tab ${t.id==='t1'?'act':''}"></div>`).join('');
+}
+
+function nav(id) {
+  currentTab = id;
+  $$('.ni').forEach(n => n.classList.remove('act'));
+  $$('.tab').forEach(t => t.classList.remove('act'));
+  event.currentTarget.classList.add('act');
+  $(`#${id}`).classList.add('act');
+  refreshAllViews();
+}
+
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.innerHTML = msg;
+  $('#toasts').appendChild(t); setTimeout(() => t.remove(), 4000);
+}
+
+function openModal(html) { $('#modal-content').innerHTML = html; $('#modal').style.display = 'flex'; }
+function closeModal() { $('#modal').style.display = 'none'; }
+window.myConfirm = function(msg, callback) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div class="card" style="max-width:400px; width:90%; background:var(--surf); border:1px solid var(--border);">
+      <h3 class="mb-20">Xác nhận</h3>
+      <p class="mb-20 text-mut">${msg}</p>
+      <div class="flex justify-between">
+        <button class="btn" id="btn-conf-cancel">Hủy</button>
+        <button class="btn dan" id="btn-conf-ok">Đồng ý</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('btn-conf-cancel').onclick = () => overlay.remove();
+  document.getElementById('btn-conf-ok').onclick = () => { overlay.remove(); callback(); };
+}
+
+window.myAlert = function(msg) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div class="card" style="max-width:400px; width:90%; background:var(--surf); border:1px solid var(--border);">
+      <h3 class="mb-20">Thông báo</h3>
+      <p class="mb-20 text-mut">${msg}</p>
+      <div class="flex justify-end">
+        <button class="btn pri" id="btn-alert-ok">Đóng</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('btn-alert-ok').onclick = () => overlay.remove();
+}
+
+window.myPrompt = function(msg, defaultVal, callback) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div class="card" style="max-width:400px; width:90%; background:var(--surf); border:1px solid var(--border);">
+      <h3 class="mb-20">Nhập thông tin</h3>
+      <p class="mb-10 text-mut">${msg}</p>
+      <input type="text" id="prompt-input" class="w-full mb-20" style="background:var(--bg);border:1px solid var(--border);padding:8px;border-radius:4px;color:var(--text);" value="${defaultVal || ''}">
+      <div class="flex justify-between">
+        <button class="btn" id="btn-prompt-cancel">Hủy</button>
+        <button class="btn pri" id="btn-prompt-ok">Đồng ý</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const input = document.getElementById('prompt-input');
+  input.focus();
+  input.select();
+  
+  const cleanup = () => overlay.remove();
+  document.getElementById('btn-prompt-cancel').onclick = () => { cleanup(); callback(null); };
+  document.getElementById('btn-prompt-ok').onclick = () => { cleanup(); callback(input.value); };
+  input.onkeydown = (e) => {
+    if(e.key === 'Enter') { cleanup(); callback(input.value); }
+    if(e.key === 'Escape') { cleanup(); callback(null); }
+  };
+}
+
+// --- RENDERERS ---
+function refreshAllViews() {
+  const nw = getNetWorth();
+  $('#h-date').innerText = new Date().toLocaleDateString('vi-VN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  $('#h-nw').innerText = 'Tài sản ròng: ' + fmt(nw.netWorth);
+  const lastBkp = get('settings')?.lastBackupDate;
+  if (lastBkp) {
+    $('#h-bkp').innerText = 'Sao lưu: ' + new Date(lastBkp).toLocaleDateString('vi-VN');
+    $('#h-bkp').style.color = 'var(--text)';
+  } else {
+    $('#h-bkp').innerText = '⚠️ Chưa sao lưu';
+    $('#h-bkp').style.color = 'var(--neg)';
+  }
+
+  if(currentTab === 't1') renderT1(nw);
+  if(currentTab === 't2') renderT2();
+  if(currentTab === 't3') renderT3();
+  if(currentTab === 't4') renderT4();
+  if(currentTab === 't5') renderT5();
+  if(currentTab === 't6') renderT6();
+  if(currentTab === 't7') renderT7();
+  if(currentTab === 't8') renderT8();
+  
+  checkBudgetWarnings();
+  checkRebalancingAlert();
+}
+
+window.warnedBuckets = window.warnedBuckets || {};
+function checkBudgetWarnings() {
+  const yyyymm = new Date().toISOString().slice(0, 7);
+  const rules = get('allocation_rules')?.buckets || [];
+  rules.forEach(b => {
+    const data = computeMonthlyBucket(b.id, yyyymm);
+    if (data.utilizationRate >= 85) {
+      const key = `${b.id}-${yyyymm}-${data.utilizationRate >= 100 ? 'over' : 'warn'}`;
+      if (!window.warnedBuckets[key]) {
+        toast(`⚠️ Hũ ${b.name} đã dùng ${data.utilizationRate.toFixed(0)}% ngân sách. Còn ${fmt(data.rolloverOut)}.`);
+        window.warnedBuckets[key] = true;
+      }
+    }
+  });
+}
+
+function checkRebalancingAlert() {
+  const settings = get('settings');
+  const threshold = settings?.rebalanceThreshold || 10;
+  const targets = settings?.bucketTargets || {};
+  const total = getTotalPortfolioValue();
+  if (total === 0) return;
+  
+  let needsRebalance = false;
+  let msg = 'Cần tái cân bằng: ';
+  
+  ['Tăng trưởng vốn', 'Dòng tiền', 'Lướt sóng', 'Bảo đảm'].forEach(b => {
+    const val = getBucketPortfolioValue(b);
+    const pct = (val / total) * 100;
+    const target = targets[b] || 0;
+    if (Math.abs(pct - target) > threshold) {
+      needsRebalance = true;
+      msg += `${b} (${pct.toFixed(1)}% vs ${target}%), `;
+    }
+  });
+  
+  if (needsRebalance) {
+    if (sessionStorage.getItem('rebalance_alert_dismissed')) return;
+    const bannerHtml = `
+      <div class="card bg-warn mb-20 flex justify-between align-center" id="rebalance-banner">
+        <div><strong>⚖️ Cảnh báo lệch tỷ trọng:</strong> ${msg.slice(0, -2)}</div>
+        <button class="btn" style="padding:4px 8px; background:rgba(0,0,0,0.1); border:none;" onclick="sessionStorage.setItem('rebalance_alert_dismissed', 'true'); this.parentElement.remove();">Đã đọc</button>
+      </div>
+    `;
+    if (currentTab === 't1') {
+      const t1 = $('#t1');
+      if(t1.innerHTML.indexOf('Cảnh báo lệch tỷ trọng') === -1) t1.insertAdjacentHTML('afterbegin', bannerHtml);
+    }
+    if (currentTab === 't4') {
+      const t4 = $('#t4');
+      if(t4.innerHTML.indexOf('Cảnh báo lệch tỷ trọng') === -1) t4.insertAdjacentHTML('afterbegin', bannerHtml);
+    }
+  }
+}
+
+// TAB 1: TỔNG QUAN
+function renderT1(nw) {
+  const txs = get('transactions')||[];
+  const now = new Date();
+  const thisMonth = txs.filter(t => new Date(t.date).getMonth() === now.getMonth() && new Date(t.date).getFullYear() === now.getFullYear());
+  const thu = thisMonth.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const chi = thisMonth.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+
+  // MoM Δ%
+  const lastMonth = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const lastMonthTxs = txs.filter(t => new Date(t.date).getMonth() === lastMonth.getMonth() && new Date(t.date).getFullYear() === lastMonth.getFullYear());
+  const lastThu = lastMonthTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const lastChi = lastMonthTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const lastCash = getCashBalance() - (thu - chi); // Approximation
+  const assets = get('assets')||[];
+  const lastAssetValue = assets.reduce((sum, a) => sum + computeAssetPosition(a.id).currentValue, 0); // Need historical snapshot for accuracy, using current for now
+  const lastLiabilities = (get('liabilities')||[]).reduce((sum, l) => sum + l.remainingAmount, 0);
+  const lastNw = lastCash + lastAssetValue - lastLiabilities;
+  const momPct = lastNw > 0 ? ((nw.netWorth - lastNw) / lastNw) * 100 : 0;
+  const momClass = momPct >= 0 ? 'text-pos' : 'text-neg';
+
+  // Calculate Liquidity
+  const layer1 = nw.cash;
+  const savings = assets.filter(a => a.assetType === 'savings');
+  let layer2_30d = 0;
+  savings.forEach(s => {
+    if (s.maturityDate) {
+      const diffDays = Math.ceil((new Date(s.maturityDate) - now) / (1000 * 60 * 60 * 24));
+      if (diffDays >= 0 && diffDays <= 30) layer2_30d += computeAssetPosition(s.id).currentValue;
+    }
+  });
+  
+  // Avg expense last 3 months
+  const last3m = new Date(now.getFullYear(), now.getMonth()-3, 1);
+  const exp3m = txs.filter(t => t.type === 'expense' && new Date(t.date) >= last3m).reduce((s,t)=>s+t.amount,0) / 3;
+  const efMonths = exp3m > 0 ? (layer1 / exp3m) : 0;
+  const efBadge = efMonths >= 6 ? '✅' : (efMonths >= 3 ? '⚠️' : '🔴');
+
+  const settings = get('settings');
+  const rolling = computeRollingBase(settings.rollingWindow || 3);
+
+  // Top 5 assets
+  const sortedAssets = [...assets].map(a => ({...a, pos: computeAssetPosition(a.id)})).sort((a,b) => b.pos.currentValue - a.pos.currentValue).slice(0, 5);
+
+  // Goals
+  const goals = getGoalsWithComputedAmounts();
+
+  // Rebalancing Alert
+  const bucketTotals = {'Tăng trưởng vốn':0, 'Dòng tiền':0, 'Lướt sóng':0, 'Bảo đảm':0};
+  let totalAssetValue = 0;
+  assets.forEach(a => { 
+    const val = computeAssetPosition(a.id).currentValue;
+    bucketTotals[a.bucket] += val; 
+    totalAssetValue += val;
+  });
+
+  let html = `
+    <div class="g4">
+      <div class="card"><div class="text-mut">Tài sản ròng</div><h2 class="text-pos">${fmt(nw.netWorth)} <span class="${momClass} text-sm">(${momPct>0?'+':''}${momPct.toFixed(1)}%)</span></h2></div>
+      <div class="card"><div class="text-mut">Tổng tài sản</div><h2 class="text-info">${fmt(nw.cash + nw.assetValue)}</h2></div>
+      <div class="card"><div class="text-mut">Tổng nợ</div><h2 class="text-neg">${fmt(nw.liabilities)}</h2></div>
+      <div class="card"><div class="text-mut">Thu / Chi (Tháng này)</div>
+        <div class="flex justify-between mt-10"><span class="text-pos">↑ ${fmt(thu)}</span> <span class="text-neg">↓ ${fmt(chi)}</span></div>
+      </div>
+    </div>
+    
+    <div class="g3">
+      <div class="card">
+        <h3>Thanh khoản & Quỹ khẩn cấp</h3>
+        <div class="flex justify-between mb-10"><span>Tiền mặt (Layer 1):</span> <strong>${fmt(layer1)}</strong></div>
+        <div class="flex justify-between mb-10"><span>Đáo hạn < 30 ngày:</span> <strong>${fmt(layer2_30d)}</strong></div>
+        <div class="flex justify-between mt-20 pt-10 border-top">
+          <span>Quỹ khẩn cấp:</span> <strong>${efMonths.toFixed(1)} tháng ${efBadge}</strong>
+        </div>
+      </div>
+      <div class="card" style="grid-column: span 2;">
+        <h3>Xu hướng tài sản (12 tháng)</h3>
+        <canvas id="c-nw" style="max-height: 200px;"></canvas>
+      </div>
+    </div>
+
+    <div class="g3">
+      <div class="card">
+        <h3>Biến động thu nhập (6T)</h3>
+        <canvas id="c-inc-vol" style="max-height: 150px;"></canvas>
+        <div class="flex justify-between mt-10 text-sm"><span>Trung bình:</span> <strong>${fmt(rolling.avgNonZero)}</strong></div>
+        <div class="flex justify-between text-sm"><span>Biến động:</span> <strong>${rolling.volatility.toFixed(1)}%</strong></div>
+        <div class="flex justify-between text-sm"><span>Cơ sở an toàn:</span> <strong>${fmt(rolling.conservative)}</strong></div>
+      </div>
+      <div class="card" style="grid-column: span 2;">
+        <h3>Tổng quan Ngân sách Tháng</h3>
+        <div class="g2">
+          ${(get('allocation_rules')?.buckets||[]).map(r => {
+            const b = computeMonthlyBucket(r.id, new Date().toISOString().slice(0,7));
+            const statusColor = b.status === 'surplus' ? 'var(--pos)' : (b.status === 'over_budget' ? 'var(--neg)' : (b.status === 'warning' ? 'var(--warn)' : 'var(--pos)'));
+            return `
+              <div class="mb-10">
+                <div class="flex justify-between text-sm mb-5"><span>${r.name}</span> <span>${b.utilizationRate.toFixed(0)}%</span></div>
+                <div class="prog-bg" style="height:6px; margin:0;"><div class="prog-bar" style="width:${Math.min(b.utilizationRate, 100)}%; background:${statusColor}"></div></div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="g3">
+      <div class="card">
+        <h3>Giao dịch gần đây</h3>
+        <table class="mt-10">
+          ${txs.slice(-5).reverse().map(t => `
+            <tr>
+              <td>${new Date(t.date).toLocaleDateString('vi-VN')}</td>
+              <td>${t.category}</td>
+              <td class="${t.type==='income'?'text-pos':'text-neg'} text-right">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+      <div class="card">
+        <h3>Top 5 Tài sản</h3>
+        <table class="mt-10">
+          ${sortedAssets.map(a => `
+            <tr>
+              <td>${a.name}</td>
+              <td class="text-right">${fmt(a.pos.currentValue)}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+      <div class="card">
+        <h3>Mục tiêu</h3>
+        ${goals.slice(0,3).map(g => {
+          const pct = (g.currentAmount / g.targetAmount) * 100;
+          return `
+            <div class="mb-10">
+              <div class="flex justify-between text-sm mb-5"><span>${g.name}</span> <span>${pct.toFixed(0)}%</span></div>
+              <div class="prog-bg" style="height:6px; margin:0;"><div class="prog-bar bg-info" style="width:${pct}%"></div></div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  $('#t1').innerHTML = html;
+
+  setTimeout(() => {
+    if(charts['nw']) charts['nw'].destroy();
+    if(charts['inc-vol']) charts['inc-vol'].destroy();
+    
+    const labels = []; const data = [];
+    for(let i=11; i>=0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      labels.push(`T${d.getMonth()+1}`);
+      data.push(nw.netWorth * (1 - i*0.02));
+    }
+
+    charts['nw'] = new Chart($('#c-nw'), {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Tài sản ròng', data, borderColor: '#4F8EF7', backgroundColor: 'rgba(79,142,247,0.1)', fill: true, tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#2A2D3E' } }, x: { grid: { color: '#2A2D3E' } } }, plugins: { legend: { display: false } } }
+    });
+
+    const incLabels = []; const incData = [];
+    for(let i=5; i>=0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      incLabels.push(`T${d.getMonth()+1}`);
+      incData.push(sumIncomeForMonth(`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`));
+    }
+    charts['inc-vol'] = new Chart($('#c-inc-vol'), {
+      type: 'bar',
+      data: { labels: incLabels, datasets: [{ label: 'Thu nhập', data: incData, backgroundColor: '#22C55E' }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+    });
+  }, 50);
+}
+
+// TAB 2: THU CHI
+let t2_filter = { month: new Date().toISOString().slice(0,7), type: 'all', cat: 'all' };
+
+function renderT2() {
+  let txs = (get('transactions')||[]).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const accs = get('cash_accounts')||[];
+  const accMap = accs.reduce((m,a) => { m[a.id]=a.name; return m; }, {});
+
+  // Apply filters
+  if(t2_filter.month) txs = txs.filter(t => t.date.startsWith(t2_filter.month));
+  if(t2_filter.type !== 'all') txs = txs.filter(t => t.type === t2_filter.type);
+  if(t2_filter.cat !== 'all') txs = txs.filter(t => t.category === t2_filter.cat);
+
+  const totalThu = txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalChi = txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const soDu = totalThu - totalChi;
+  const savingsRate = totalThu > 0 ? (soDu / totalThu) * 100 : 0;
+
+  const cats = get('categories');
+  const allCats = [...new Set([...cats.income, ...cats.expense])];
+
+  let html = `
+    <div class="flex justify-between align-center mb-20">
+      <h2>Lịch sử Thu Chi</h2>
+      <button class="btn pri" onclick="openFab()">+ Thêm Giao Dịch</button>
+    </div>
+
+    <div class="card flex gap-10 align-center mb-20" style="padding:10px 20px; position:sticky; top:0; z-index:5;">
+      <input type="month" value="${t2_filter.month}" onchange="t2_filter.month=this.value; refreshAllViews()" style="margin:0; width:auto;">
+      <select onchange="t2_filter.type=this.value; refreshAllViews()" style="margin:0; width:auto;">
+        <option value="all" ${t2_filter.type==='all'?'selected':''}>Tất cả loại</option>
+        <option value="income" ${t2_filter.type==='income'?'selected':''}>Thu</option>
+        <option value="expense" ${t2_filter.type==='expense'?'selected':''}>Chi</option>
+      </select>
+      <select onchange="t2_filter.cat=this.value; refreshAllViews()" style="margin:0; width:auto;">
+        <option value="all">Tất cả danh mục</option>
+        ${allCats.map(c => `<option value="${c}" ${t2_filter.cat===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <button class="btn" onclick="openCatManager()">Quản lý Danh mục</button>
+    </div>
+
+    <div class="card g4 mb-20" style="padding:15px 20px;">
+      <div><div class="text-mut">Tổng Thu</div><div class="text-pos font-bold">${fmt(totalThu)}</div></div>
+      <div><div class="text-mut">Tổng Chi</div><div class="text-neg font-bold">${fmt(totalChi)}</div></div>
+      <div><div class="text-mut">Số Dư</div><div class="font-bold">${fmt(soDu)}</div></div>
+      <div>
+        <div class="text-mut">Tỷ lệ tiết kiệm</div>
+        <div class="flex justify-between"><span class="font-bold">${savingsRate.toFixed(1)}%</span></div>
+        <div class="prog-bg" style="height:4px; margin-top:4px;"><div class="prog-bar bg-info" style="width:${Math.max(0, Math.min(savingsRate, 100))}%"></div></div>
+      </div>
+    </div>
+
+    <div class="card mb-20">
+      <h3>Lịch sử Nguồn thu (6 Tháng)</h3>
+      <canvas id="c-inc-src" style="max-height: 250px;"></canvas>
+    </div>
+
+    <div class="g2">
+      <div class="card" style="padding:0; overflow:hidden; grid-column: span 2;">
+        <table>
+          <tr style="background:var(--surf)"><th>Ngày</th><th>Loại</th><th>Danh mục</th><th>Mô tả</th><th>Tài khoản</th><th>Số tiền</th><th>Thao tác</th></tr>
+          ${txs.slice(0, 50).map(t => `
+            <tr style="border-left: 3px solid ${t.type==='income'?'var(--pos)':'var(--neg)'}">
+              <td>${new Date(t.date).toLocaleDateString('vi-VN')}</td>
+              <td><span class="badge ${t.type==='income'?'bg-flow':'bg-surf'}">${t.type==='income'?'Thu':'Chi'}</span></td>
+              <td>${t.category}</td>
+              <td>${t.description}</td>
+              <td>${accMap[t.accountId]||'N/A'}</td>
+              <td class="${t.type==='income'?'text-pos':'text-neg'} font-bold">${t.type==='income'?'+':'-'}${fmt(t.amount)}</td>
+              <td><button class="btn dan" style="padding:4px 8px" onclick="deleteTx('${t.id}')">Xóa</button></td>
+            </tr>
+          `).join('')}
+        </table>
+        ${txs.length > 50 ? '<div class="text-center p-10 text-mut">Hiển thị 50 giao dịch gần nhất...</div>' : ''}
+      </div>
+    </div>
+  `;
+  $('#t2').innerHTML = html;
+
+  setTimeout(() => {
+    if(charts['inc-src']) charts['inc-src'].destroy();
+    
+    const now = new Date();
+    const labels = [];
+    const sources = ['salary', 'freelance', 'investment', 'rental', 'bonus', 'other'];
+    const sourceNames = {
+      'salary': 'Lương', 'freelance': 'Freelance', 'investment': 'Đầu tư',
+      'rental': 'Cho thuê', 'bonus': 'Thưởng', 'other': 'Khác'
+    };
+    const colors = ['#4F8EF7', '#22C55E', '#F59E0B', '#A78BFA', '#EC4899', '#94A3B8'];
+    
+    const datasets = sources.map((s, i) => ({
+      label: sourceNames[s],
+      data: [],
+      backgroundColor: colors[i]
+    }));
+
+    const allTxs = get('transactions') || [];
+
+    for(let i=5; i>=0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      const mStr = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;
+      labels.push(`T${d.getMonth()+1}`);
+      
+      sources.forEach((src, idx) => {
+        const sum = allTxs.filter(t => t.type === 'income' && t.date.startsWith(mStr) && t.incomeSource === src)
+                          .reduce((s,t) => s + t.amount, 0);
+        datasets[idx].data.push(sum);
+      });
+    }
+
+    charts['inc-src'] = new Chart($('#c-inc-src'), {
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { stacked: true, grid: { color: '#2A2D3E' } }
+        },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#F1F5F9' } }
+        }
+      }
+    });
+  }, 50);
+}
+
+function openCatManager() {
+  const cats = get('categories');
+  openModal(`
+    <h3 class="mb-20">Quản lý Danh mục</h3>
+    <div class="g2">
+      <div>
+        <h4>Danh mục Thu</h4>
+        <ul style="list-style:none; padding:0;" class="mt-10">
+          ${cats.income.map(c => `<li class="flex justify-between mb-5 border-bottom pb-5"><span>${c}</span> <button class="btn dan" style="padding:2px 6px" onclick="deleteCat('income', '${c}')">Xóa</button></li>`).join('')}
+        </ul>
+        <div class="flex gap-5 mt-10"><input type="text" id="new-cat-inc" style="margin:0"><button class="btn pri" onclick="addCat('income')">Thêm</button></div>
+      </div>
+      <div>
+        <h4>Danh mục Chi</h4>
+        <ul style="list-style:none; padding:0;" class="mt-10">
+          ${cats.expense.map(c => `<li class="flex justify-between mb-5 border-bottom pb-5"><span>${c}</span> <button class="btn dan" style="padding:2px 6px" onclick="deleteCat('expense', '${c}')">Xóa</button></li>`).join('')}
+        </ul>
+        <div class="flex gap-5 mt-10"><input type="text" id="new-cat-exp" style="margin:0"><button class="btn pri" onclick="addCat('expense')">Thêm</button></div>
+      </div>
+    </div>
+    <button class="btn mt-20" style="width:100%" onclick="closeModal()">Đóng</button>
+  `);
+}
+
+function addCat(type) {
+  const val = $(`#new-cat-${type==='income'?'inc':'exp'}`).value;
+  if(!val) return;
+  const cats = get('categories');
+  if(!cats[type].includes(val)) cats[type].push(val);
+  set('categories', cats);
+  openCatManager();
+}
+
+function deleteCat(type, name) {
+  const cats = get('categories');
+  cats[type] = cats[type].filter(c => c !== name);
+  set('categories', cats);
+  openCatManager();
+}
+
+function deleteTx(id) {
+  myConfirm('Bạn có chắc chắn muốn xóa giao dịch này?', () => {
+    const txs = get('transactions')||[];
+    set('transactions', txs.filter(t => t.id !== id));
+    toast('✅ Đã xóa giao dịch');
+    refreshAllViews();
+  });
+}
+
+// TAB 3: NGÂN SÁCH
+function renderT3() {
+  const rules = get('allocation_rules')?.buckets || [];
+  let html = `
+    <div class="flex justify-between align-center mb-20">
+      <h2>Ngân Sách & Phân Bổ</h2>
+      <div class="flex bg-surf" style="border-radius:8px; padding:4px;">
+        <button class="btn ${t3_subTab==='A'?'pri':''}" style="padding:4px 12px; border:none; background:${t3_subTab==='A'?'var(--info)':'transparent'}" onclick="t3_subTab='A';refreshAllViews()">Tháng này</button>
+        <button class="btn ${t3_subTab==='B'?'pri':''}" style="padding:4px 12px; border:none; background:${t3_subTab==='B'?'var(--info)':'transparent'}" onclick="t3_subTab='B';refreshAllViews()">Lũy kế năm</button>
+        <button class="btn ${t3_subTab==='C'?'pri':''}" style="padding:4px 12px; border:none; background:${t3_subTab==='C'?'var(--info)':'transparent'}" onclick="t3_subTab='C';refreshAllViews()">So sánh năm</button>
+      </div>
+    </div>
+  `;
+  
+  if (t3_subTab === 'A') {
+    const { base, source } = getMonthBudgetBase(t3_currentMonth);
+    html += `
+      <div class="flex justify-between align-center mb-20">
+        <button class="btn" onclick="changeT3Month(-1)">&#8592; Tháng trước</button>
+        <h3>Tháng ${t3_currentMonth.split('-')[1]}/${t3_currentMonth.split('-')[0]}</h3>
+        <button class="btn" onclick="changeT3Month(1)">Tháng sau &#8594;</button>
+      </div>
+      <div class="card mb-20">
+        <div class="flex justify-between">
+          <span class="text-mut">Tổng thu nhập cơ sở (để phân bổ):</span>
+          <strong class="text-pos">${fmt(base)}</strong>
+        </div>
+        <div class="text-mut" style="font-size:0.85rem; text-align:right;">Nguồn: ${source === 'actual' ? 'Thực tế tháng này' : 'Trung bình (Rolling Avg)'}</div>
+      </div>
+      <div class="g2">
+    `;
+    rules.forEach(r => {
+      const b = computeMonthlyBucket(r.id, t3_currentMonth);
+      const statusColor = b.status === 'surplus' ? 'var(--pos)' : (b.status === 'over_budget' ? 'var(--neg)' : (b.status === 'warning' ? 'var(--warn)' : 'var(--pos)'));
+      const statusBg = b.status === 'surplus' ? 'bg-pos' : (b.status === 'over_budget' ? 'bg-neg' : (b.status === 'warning' ? 'bg-warn' : 'bg-pos'));
+      
+      html += `
+        <div class="card">
+          <div class="flex justify-between mb-10">
+            <h3 style="color:${r.color}">${r.name} <span class="text-mut text-sm">(${r.percentage}%)</span></h3>
+            <span class="badge ${statusBg}">${b.utilizationRate.toFixed(1)}%</span>
+          </div>
+          <div class="text-mut mb-10" style="font-size:0.85rem">
+            Ngân sách gốc: ${fmt(b.baseAmount)} | Rollover vào: <span class="text-pos">${b.rolloverIn > 0 ? '+' : ''}${fmt(b.rolloverIn)}</span>
+          </div>
+          <div class="flex justify-between mb-10">
+            <span>Đã chi: ${fmt(b.spentAmount)}</span>
+            <span>Hiệu lực: ${fmt(b.effectiveBudget)}</span>
+          </div>
+          <div class="prog-bg"><div class="prog-bar" style="width:${Math.min(b.utilizationRate, 100)}%; background:${statusColor}"></div></div>
+          <div class="mt-10 text-mut" style="font-size:0.85rem">
+            Dự kiến rollover sang tháng sau: <span class="${b.rolloverOut >= 0 ? 'text-pos' : 'text-neg'}">${b.rolloverOut > 0 ? '+' : ''}${fmt(b.rolloverOut)}</span>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  } else if (t3_subTab === 'B') {
+    const year = t3_currentMonth.split('-')[0];
+    html += `
+      <div class="flex justify-between align-center mb-20">
+        <button class="btn" onclick="changeT3Year(-1)">&#8592; Năm trước</button>
+        <h3>Năm ${year}</h3>
+        <button class="btn" onclick="changeT3Year(1)">Năm sau &#8594;</button>
+      </div>
+      <div class="card" style="padding:0; overflow-x:auto;">
+        <table style="min-width: 800px; margin:0;">
+          <tr style="background:var(--surf)">
+            <th>Hũ (Bucket)</th>
+            ${[...Array(12)].map((_,i) => `<th>T${i+1}</th>`).join('')}
+          </tr>
+    `;
+    rules.forEach(r => {
+      html += `<tr><td><strong style="color:${r.color}">${r.name}</strong></td>`;
+      for(let i=1; i<=12; i++) {
+        const m = `${year}-${i.toString().padStart(2,'0')}`;
+        if (m > new Date().toISOString().slice(0,7)) {
+          html += `<td>-</td>`;
+        } else {
+          const b = computeMonthlyBucket(r.id, m);
+          const statusBg = b.status === 'surplus' ? 'bg-pos' : (b.status === 'over_budget' ? 'bg-neg' : (b.status === 'warning' ? 'bg-warn' : 'bg-pos'));
+          html += `<td><span class="badge ${statusBg}" title="Chi: ${fmt(b.spentAmount)} / NS: ${fmt(b.effectiveBudget)}">${b.utilizationRate.toFixed(0)}%</span></td>`;
+        }
+      }
+      html += `</tr>`;
+    });
+    html += `</table></div>`;
+  } else if (t3_subTab === 'C') {
+    const year = parseInt(t3_currentMonth.split('-')[0]);
+    const prevYear = year - 1;
+    
+    html += `
+      <div class="flex justify-between align-center mb-20">
+        <button class="btn" onclick="changeT3Year(-1)">&#8592; Năm trước</button>
+        <h3>So sánh ${year} vs ${prevYear}</h3>
+        <button class="btn" onclick="changeT3Year(1)">Năm sau &#8594;</button>
+      </div>
+      <div class="card mb-20">
+        <canvas id="c-t3-compare" style="max-height: 300px;"></canvas>
+      </div>
+      <div class="g3">
+    `;
+
+    const labels = [];
+    const dataCurrent = [];
+    const dataPrev = [];
+
+    rules.forEach(r => {
+      labels.push(r.name);
+      
+      let curSpent = 0, curBudget = 0, curOver = 0;
+      let prevSpent = 0, prevBudget = 0, prevOver = 0;
+
+      for(let i=1; i<=12; i++) {
+        const mCur = `${year}-${i.toString().padStart(2,'0')}`;
+        const bCur = computeMonthlyBucket(r.id, mCur);
+        curSpent += bCur.spentAmount;
+        curBudget += bCur.effectiveBudget;
+        if (bCur.status === 'over_budget') curOver++;
+
+        const mPrev = `${prevYear}-${i.toString().padStart(2,'0')}`;
+        const bPrev = computeMonthlyBucket(r.id, mPrev);
+        prevSpent += bPrev.spentAmount;
+        prevBudget += bPrev.effectiveBudget;
+        if (bPrev.status === 'over_budget') prevOver++;
+      }
+
+      dataCurrent.push(curSpent);
+      dataPrev.push(prevSpent);
+
+      const curUtil = curBudget > 0 ? (curSpent / curBudget) * 100 : 0;
+      const prevUtil = prevBudget > 0 ? (prevSpent / prevBudget) * 100 : 0;
+      const curSaved = curBudget - curSpent;
+      const prevSaved = prevBudget - prevSpent;
+
+      html += `
+        <div class="card">
+          <h4 style="color:${r.color}">${r.name}</h4>
+          <div class="flex justify-between mt-10 text-sm"><span>Tỷ lệ sử dụng (${year}):</span> <strong>${curUtil.toFixed(1)}%</strong></div>
+          <div class="flex justify-between text-sm"><span>Tỷ lệ sử dụng (${prevYear}):</span> <strong>${prevUtil.toFixed(1)}%</strong></div>
+          <div class="flex justify-between mt-10 text-sm"><span>Tiết kiệm (${year}):</span> <strong class="${curSaved>=0?'text-pos':'text-neg'}">${fmt(curSaved)}</strong></div>
+          <div class="flex justify-between text-sm"><span>Tiết kiệm (${prevYear}):</span> <strong class="${prevSaved>=0?'text-pos':'text-neg'}">${fmt(prevSaved)}</strong></div>
+          <div class="flex justify-between mt-10 text-sm"><span>Tháng vượt NS (${year}):</span> <strong class="${curOver>0?'text-neg':''}">${curOver}</strong></div>
+          <div class="flex justify-between text-sm"><span>Tháng vượt NS (${prevYear}):</span> <strong class="${prevOver>0?'text-neg':''}">${prevOver}</strong></div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    setTimeout(() => {
+      if(charts['t3-compare']) charts['t3-compare'].destroy();
+      charts['t3-compare'] = new Chart($('#c-t3-compare'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: `Thực chi ${year}`, data: dataCurrent, backgroundColor: '#4F8EF7' },
+            { label: `Thực chi ${prevYear}`, data: dataPrev, backgroundColor: '#94A3B8' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: { y: { grid: { color: '#2A2D3E' } }, x: { grid: { display: false } } },
+          plugins: { legend: { labels: { color: '#F1F5F9' } } }
+        }
+      });
+    }, 50);
+  }
+  $('#t3').innerHTML = html;
+}
+
+window.changeT3Month = function(delta) {
+  let [y, m] = t3_currentMonth.split('-').map(Number);
+  m += delta;
+  if (m > 12) { m = 1; y++; }
+  if (m < 1) { m = 12; y--; }
+  t3_currentMonth = `${y}-${m.toString().padStart(2,'0')}`;
+  refreshAllViews();
+}
+
+window.changeT3Year = function(delta) {
+  let [y, m] = t3_currentMonth.split('-').map(Number);
+  y += delta;
+  t3_currentMonth = `${y}-${m.toString().padStart(2,'0')}`;
+  refreshAllViews();
+}
+
+// TAB 4: DANH MỤC ĐẦU TƯ
+let t4_subTab = 'A';
+
+function renderT4() {
+  const assets = get('assets')||[];
+  const txs = get('asset_transactions')||[];
+  
+  let html = `
+    <div class="flex justify-between align-center mb-20">
+      <h2>Danh Mục Đầu Tư & Tài Sản</h2>
+      <div class="flex bg-surf" style="border-radius:8px; padding:4px;">
+        <button class="btn ${t4_subTab==='A'?'pri':''}" style="padding:4px 12px; border:none; background:${t4_subTab==='A'?'var(--info)':'transparent'}" onclick="t4_subTab='A';refreshAllViews()">Tổng quan</button>
+        <button class="btn ${t4_subTab==='B'?'pri':''}" style="padding:4px 12px; border:none; background:${t4_subTab==='B'?'var(--info)':'transparent'}" onclick="t4_subTab='B';refreshAllViews()">Tài sản</button>
+        <button class="btn ${t4_subTab==='C'?'pri':''}" style="padding:4px 12px; border:none; background:${t4_subTab==='C'?'var(--info)':'transparent'}" onclick="t4_subTab='C';refreshAllViews()">Giao dịch</button>
+      </div>
+    </div>
+  `;
+
+  if (t4_subTab === 'A') {
+    const bucketTotals = {'Tăng trưởng vốn':{val:0, upnl:0, rpnl:0, div:0}, 'Dòng tiền':{val:0, upnl:0, rpnl:0, div:0}, 'Lướt sóng':{val:0, upnl:0, rpnl:0, div:0}, 'Bảo đảm':{val:0, upnl:0, rpnl:0, div:0}};
+    let totalVal = 0;
+    assets.forEach(a => {
+      const p = computeAssetPosition(a.id);
+      bucketTotals[a.bucket].val += p.currentValue;
+      bucketTotals[a.bucket].upnl += p.unrealizedPnL;
+      bucketTotals[a.bucket].rpnl += p.realizedPnL;
+      bucketTotals[a.bucket].div += p.totalDividends;
+      totalVal += p.currentValue;
+    });
+
+    html += `
+      <div class="g4 mb-20">
+        ${Object.keys(bucketTotals).map(b => `
+          <div class="card">
+            <h3 style="color:${BUCKET_COLORS[b]}">${b}</h3>
+            <div class="text-mut mb-10">${totalVal > 0 ? ((bucketTotals[b].val / totalVal)*100).toFixed(1) : 0}% danh mục</div>
+            <div class="font-bold mb-5">${fmt(bucketTotals[b].val)}</div>
+            <div class="text-sm">Lãi chưa chốt: <span class="${bucketTotals[b].upnl>=0?'text-pos':'text-neg'}">${fmt(bucketTotals[b].upnl)}</span></div>
+            <div class="text-sm">Lãi đã chốt: <span class="${bucketTotals[b].rpnl>=0?'text-pos':'text-neg'}">${fmt(bucketTotals[b].rpnl)}</span></div>
+            <div class="text-sm">Cổ tức/Lãi: <span class="text-pos">${fmt(bucketTotals[b].div)}</span></div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="g2 mb-20">
+        <div class="card">
+          <h3>Giá vốn vs Lãi/Lỗ chưa chốt (Theo tài sản)</h3>
+          <canvas id="c-t4-assets" style="max-height: 250px;"></canvas>
+        </div>
+        <div class="card">
+          <h3>Phân bổ thực tế vs Mục tiêu</h3>
+          <canvas id="c-t4-alloc" style="max-height: 250px;"></canvas>
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      if(charts['t4-assets']) charts['t4-assets'].destroy();
+      if(charts['t4-alloc']) charts['t4-alloc'].destroy();
+
+      // Chart 1: Cost vs Unrealized PnL per asset
+      const assetLabels = [];
+      const costData = [];
+      const pnlData = [];
+      const pnlColors = [];
+
+      assets.forEach(a => {
+        const p = computeAssetPosition(a.id);
+        if (p.holdingQty > 0) {
+          assetLabels.push(a.name);
+          costData.push(p.totalCost);
+          pnlData.push(p.unrealizedPnL);
+          pnlColors.push(p.unrealizedPnL >= 0 ? '#22C55E' : '#EF4444');
+        }
+      });
+
+      charts['t4-assets'] = new Chart($('#c-t4-assets'), {
+        type: 'bar',
+        data: {
+          labels: assetLabels,
+          datasets: [
+            { label: 'Giá vốn', data: costData, backgroundColor: '#4F8EF7' },
+            { label: 'Lãi/Lỗ chưa chốt', data: pnlData, backgroundColor: pnlColors }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: '#2A2D3E' } } },
+          plugins: { legend: { labels: { color: '#F1F5F9' } } }
+        }
+      });
+
+      // Chart 2: Allocation vs Target
+      const settings = get('settings');
+      const allocLabels = Object.keys(settings.bucketTargets);
+      const actualData = [];
+      const targetData = [];
+
+      allocLabels.forEach(b => {
+        const actualPct = totalVal > 0 ? (bucketTotals[b].val / totalVal) * 100 : 0;
+        actualData.push(actualPct);
+        targetData.push(settings.bucketTargets[b]);
+      });
+
+      charts['t4-alloc'] = new Chart($('#c-t4-alloc'), {
+        type: 'bar',
+        data: {
+          labels: allocLabels,
+          datasets: [
+            { label: 'Thực tế (%)', data: actualData, backgroundColor: allocLabels.map(b => BUCKET_COLORS[b]) },
+            { label: 'Mục tiêu (%)', data: targetData, backgroundColor: '#94A3B8' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: { y: { grid: { color: '#2A2D3E' } }, x: { grid: { display: false } } },
+          plugins: { legend: { labels: { color: '#F1F5F9' } } }
+        }
+      });
+    }, 50);
+
+  } else if (t4_subTab === 'B') {
+    html += `
+      <div class="flex justify-between mb-10"><h3 style="margin:0">Danh sách tài sản</h3><button class="btn pri" onclick="openAssetModal()">+ Thêm Tài Sản</button></div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table>
+          <tr style="background:var(--surf)"><th>Tên</th><th>Bucket</th><th>SL</th><th>Giá Vốn</th><th>Giá Hiện Tại</th><th>Giá Trị</th><th>Lãi/Lỗ</th><th>Thao tác</th></tr>
+          ${assets.map(a => {
+            const p = computeAssetPosition(a.id);
+            const pnlClass = p.unrealizedPnL > 0 ? 'text-pos' : (p.unrealizedPnL < 0 ? 'text-neg' : 'text-mut');
+            const rowClass = p.unrealizedPnL > 0 && (p.unrealizedPnL/p.totalCost)>0.1 ? 'border-left: 3px solid var(--pos)' : (p.unrealizedPnL < 0 ? 'border-left: 3px solid var(--neg)' : 'border-left: 3px solid var(--warn)');
+            return `
+            <tr style="${rowClass}">
+              <td><strong>${a.name}</strong> <span class="text-mut text-sm">${a.ticker||''}</span></td>
+              <td><span class="badge ${BUCKETS[a.bucket]||'bg-safe'}">${a.bucket}</span></td>
+              <td>${p.holdingQty}</td>
+              <td>${fmt(p.avgCost)}</td>
+              <td>
+                <div class="flex gap-5">
+                  <span>${fmt(a.currentPrice)}</span>
+                  <button class="btn" style="padding:2px 6px; font-size:10px;" onclick="quickUpdatePrice('${a.id}')">✏️</button>
+                </div>
+              </td>
+              <td>${fmt(p.currentValue)}</td>
+              <td class="${pnlClass}">${p.unrealizedPnL > 0 ? '+':''}${fmt(p.unrealizedPnL)}</td>
+              <td>
+                <button class="btn" style="padding:4px 8px" onclick="openAssetTxModal('${a.id}')">Giao dịch</button>
+                <button class="btn dan" style="padding:4px 8px" onclick="deleteAsset('${a.id}')">Xóa</button>
+              </td>
+            </tr>
+            `;
+          }).join('')}
+        </table>
+      </div>
+    `;
+  } else {
+    const assetMap = assets.reduce((m,a) => { m[a.id]=a.name; return m; }, {});
+    html += `
+      <div class="card" style="padding:0; overflow:hidden;">
+        <table>
+          <tr style="background:var(--surf)"><th>Ngày</th><th>Tài sản</th><th>Loại</th><th>Số lượng</th><th>Giá</th><th>Phí</th><th>Tổng tiền</th><th>Thao tác</th></tr>
+          ${txs.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(t => `
+            <tr>
+              <td>${new Date(t.date).toLocaleDateString('vi-VN')}</td>
+              <td>${assetMap[t.assetId]||'N/A'}</td>
+              <td><span class="badge bg-surf">${t.action}</span></td>
+              <td>${t.quantity}</td>
+              <td>${fmt(t.price)}</td>
+              <td>${fmt(t.fee)}</td>
+              <td class="font-bold">${fmt(t.totalCash)}</td>
+              <td><button class="btn dan" style="padding:4px 8px" onclick="deleteAssetTx('${t.id}')">Xóa</button></td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+    `;
+  }
+  $('#t4').innerHTML = html;
+}
+
+window.deleteAssetTx = function(id) {
+  myConfirm('Bạn có chắc chắn muốn xóa giao dịch này?', () => {
+    const txs = get('asset_transactions')||[];
+    set('asset_transactions', txs.filter(t => t.id !== id));
+    toast('✅ Đã xóa giao dịch tài sản');
+    refreshAllViews();
+  });
+}
+
+window.quickUpdatePrice = function(id) {
+  myPrompt('Nhập giá mới (VNĐ):', '', (price) => {
+    if(!price || isNaN(price)) return;
+    const assets = get('assets');
+    const a = assets.find(x=>x.id===id);
+    if(a) {
+      a.currentPrice = parseInt(price);
+      a.lastPriceUpdate = new Date().toISOString();
+      set('assets', assets);
+      refreshAllViews();
+    }
+  });
+}
+
+function openAssetModal() {
+  openModal(`
+    <h3 class="mb-20">Thêm Tài Sản Mới</h3>
+    <input type="text" id="a-name" placeholder="Tên tài sản (VD: Cổ phiếu VNM)" required>
+    <div class="g2">
+      <input type="text" id="a-ticker" placeholder="Mã (Ticker)">
+      <select id="a-type">
+        <option value="stock">Cổ phiếu</option><option value="realestate">Bất động sản</option>
+        <option value="savings">Tiết kiệm</option><option value="crypto">Crypto</option><option value="gold">Vàng</option>
+      </select>
+    </div>
+    <div class="g2">
+      <select id="a-bucket">
+        <option value="Tăng trưởng vốn">Tăng trưởng vốn</option><option value="Dòng tiền">Dòng tiền</option>
+        <option value="Lướt sóng">Lướt sóng</option><option value="Bảo đảm">Bảo đảm</option>
+      </select>
+      <input type="number" id="a-price" placeholder="Giá hiện tại (VNĐ)" required>
+    </div>
+    <div class="flex justify-between mt-10">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn pri" onclick="saveAsset()">Lưu Tài Sản</button>
+    </div>
+  `);
+}
+
+function saveAsset() {
+  const name = $('#a-name').value;
+  const price = parseInt($('#a-price').value);
+  if(!name || !price) return toast('Vui lòng nhập tên và giá');
+  
+  const assets = get('assets')||[];
+  assets.push({
+    id: genId('as'), name, ticker: $('#a-ticker').value,
+    assetType: $('#a-type').value, bucket: $('#a-bucket').value, currentPrice: price
+  });
+  set('assets', assets);
+  closeModal(); toast('✅ Đã thêm tài sản'); refreshAllViews();
+}
+
+function deleteAsset(id) {
+  myConfirm('Xóa tài sản sẽ không xóa lịch sử giao dịch của nó. Bạn có chắc chắn?', () => {
+    const assets = get('assets')||[];
+    set('assets', assets.filter(a => a.id !== id));
+    toast('✅ Đã xóa tài sản'); refreshAllViews();
+  });
+}
+
+function openAssetTxModal(assetId) {
+  const asset = (get('assets')||[]).find(a=>a.id===assetId);
+  openModal(`
+    <h3 class="mb-20">Giao dịch: ${asset.name}</h3>
+    <div class="g2">
+      <select id="at-action">
+        <option value="BUY">Mua</option>
+        <option value="SELL">Bán</option>
+        <option value="DIVIDEND">Cổ tức</option>
+        <option value="INTEREST">Tiền lãi</option>
+        <option value="FEE">Phí</option>
+        <option value="SPLIT">Chia tách</option>
+      </select>
+      <input type="date" id="at-date" value="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div class="g2">
+      <input type="number" id="at-qty" placeholder="Số lượng" required>
+      <input type="number" id="at-price" placeholder="Giá mỗi đơn vị (VNĐ)" required>
+    </div>
+    <input type="number" id="at-fee" placeholder="Phí giao dịch (VNĐ)" value="0">
+    <div class="flex align-center gap-10 mt-10" id="at-initial-wrap">
+      <input type="checkbox" id="at-initial">
+      <label for="at-initial" class="text-mut">Tài sản ban đầu (không tính vào ngân sách tháng)</label>
+    </div>
+    <div class="flex justify-between mt-20">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn pri" onclick="saveAssetTx('${assetId}')">Lưu Giao Dịch</button>
+    </div>
+  `);
+  
+  // Only show the checkbox if action is BUY
+  $('#at-action').addEventListener('change', (e) => {
+    $('#at-initial-wrap').style.display = e.target.value === 'BUY' ? 'flex' : 'none';
+  });
+}
+
+function saveAssetTx(assetId) {
+  const action = $('#at-action').value;
+  const qty = parseFloat($('#at-qty').value) || 0;
+  const price = parseInt($('#at-price').value) || 0;
+  const fee = parseInt($('#at-fee').value) || 0;
+  const isInitial = $('#at-initial') ? $('#at-initial').checked : false;
+  
+  if (action === 'BUY' || action === 'SELL') {
+    if (!qty || !price) return toast('Vui lòng nhập số lượng và giá');
+  } else if (action === 'SPLIT') {
+    if (!qty) return toast('Vui lòng nhập tỷ lệ chia tách vào ô số lượng');
+  } else if (action === 'FEE') {
+    if (!fee) return toast('Vui lòng nhập phí giao dịch');
+  } else if (action === 'DIVIDEND' || action === 'INTEREST') {
+    if (!price) return toast('Vui lòng nhập số tiền vào ô giá');
+  }
+  
+  let totalCash = qty * price;
+  if (action === 'BUY') totalCash += fee;
+  if (action === 'SELL') totalCash -= fee;
+  if (action === 'DIVIDEND' || action === 'INTEREST') totalCash = price - fee;
+  if (action === 'FEE') totalCash = fee;
+  if (action === 'SPLIT') totalCash = 0;
+
+  const txs = get('asset_transactions')||[];
+  txs.push({
+    id: genId('at'), assetId, action,
+    date: new Date($('#at-date').value).toISOString(),
+    quantity: qty, price, fee, totalCash, isInitial
+  });
+  set('asset_transactions', txs);
+  closeModal(); toast('✅ Đã lưu giao dịch tài sản'); refreshAllViews();
+}
+
+function getGoalsWithComputedAmounts() {
+  const goals = get('goals')||[];
+  return goals.map(g => {
+    if (g.linkedAssetId) {
+      const pos = computeAssetPosition(g.linkedAssetId);
+      g.currentAmount = pos.currentValue;
+    }
+    return g;
+  });
+}
+
+// TAB 5: NỢ & MỤC TIÊU
+function renderT5() {
+  const liabs = get('liabilities')||[];
+  const goals = getGoalsWithComputedAmounts();
+  const nw = getNetWorth();
+  
+  const totalDebt = liabs.reduce((s,l)=>s+l.remainingAmount, 0);
+  const totalMonthly = liabs.reduce((s,l)=>s+l.monthlyPayment, 0);
+  const dti = nw.assetValue > 0 ? (totalDebt / nw.assetValue) * 100 : 0;
+  
+  let html = `
+    <div class="g3 mb-20">
+      <div class="card"><div class="text-mut">Tổng Nợ</div><h2 class="text-neg">${fmt(totalDebt)}</h2></div>
+      <div class="card"><div class="text-mut">Nghĩa vụ hàng tháng</div><h2 class="text-warn">${fmt(totalMonthly)}</h2></div>
+      <div class="card"><div class="text-mut">Tỷ lệ Nợ / Tài sản</div><h2 class="text-info">${dti.toFixed(1)}%</h2></div>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="flex justify-between align-center mb-20">
+          <h2>Khoản Nợ</h2>
+          <button class="btn pri" onclick="openLiabModal()">+ Thêm Nợ</button>
+        </div>
+        ${liabs.map(l => {
+          const pct = ((l.totalAmount - l.remainingAmount) / l.totalAmount) * 100;
+          const monthsLeft = l.monthlyPayment > 0 ? Math.ceil(l.remainingAmount / l.monthlyPayment) : 0;
+          const payoffDate = new Date();
+          payoffDate.setMonth(payoffDate.getMonth() + monthsLeft);
+          return `
+          <div class="card">
+            <div class="flex justify-between mb-10"><h3>${l.name}</h3><span class="text-neg">${fmt(l.remainingAmount)}</span></div>
+            <div class="text-mut mb-10">Tổng nợ: ${fmt(l.totalAmount)} | Lãi suất: ${l.interestRate}%/năm</div>
+            <div class="prog-bg"><div class="prog-bar bg-pos" style="width:${pct}%"></div></div>
+            <div class="flex justify-between mt-10"><span class="text-mut">Đã trả: ${pct.toFixed(1)}%</span><span class="text-mut">Trả/tháng: ${fmt(l.monthlyPayment)}</span></div>
+            <div class="text-mut mt-5">Dự kiến tất toán: ${monthsLeft > 0 ? payoffDate.toLocaleDateString('vi-VN') : 'N/A'}</div>
+            <button class="btn dan mt-10" style="width:100%" onclick="deleteLiab('${l.id}')">Xóa khoản nợ</button>
+          </div>`;
+        }).join('')}
+      </div>
+      <div>
+        <div class="flex justify-between align-center mb-20">
+          <h2>Mục Tiêu</h2>
+          <button class="btn pri" onclick="openGoalModal()">+ Thêm Mục Tiêu</button>
+        </div>
+        ${goals.map(g => {
+          const pct = (g.currentAmount / g.targetAmount) * 100;
+          const monthsLeft = Math.max(0, Math.ceil((new Date(g.deadline) - new Date()) / (1000 * 60 * 60 * 24 * 30)));
+          const reqPerMonth = monthsLeft > 0 ? (g.targetAmount - g.currentAmount) / monthsLeft : 0;
+          return `
+          <div class="card">
+            <div class="flex justify-between mb-10"><h3>${g.name}</h3><span class="text-info">${fmt(g.currentAmount)} / ${fmt(g.targetAmount)}</span></div>
+            <div class="text-mut mb-10">Hạn chót: ${new Date(g.deadline).toLocaleDateString('vi-VN')} (${monthsLeft} tháng) ${g.linkedAssetId ? ' | 🔗 Đã liên kết tài sản' : ''}</div>
+            <div class="prog-bg"><div class="prog-bar bg-info" style="width:${pct}%"></div></div>
+            <div class="flex justify-between mt-10"><span class="text-mut">Hoàn thành: ${pct.toFixed(1)}%</span><span class="text-mut">Còn thiếu: ${fmt(g.targetAmount - g.currentAmount)}</span></div>
+            <div class="text-mut mt-5">Cần tiết kiệm: ${fmt(reqPerMonth)} / tháng</div>
+            <div class="g2 mt-10">
+              <button class="btn" style="width:100%" onclick="openGoalModal('${g.id}')">Sửa / Thêm tiền</button>
+              <button class="btn dan" style="width:100%" onclick="deleteGoal('${g.id}')">Xóa</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+  $('#t5').innerHTML = html;
+}
+
+function openLiabModal() {
+  openModal(`
+    <h3 class="mb-20">Thêm Khoản Nợ</h3>
+    <input type="text" id="l-name" placeholder="Tên khoản nợ" required>
+    <div class="g2">
+      <input type="number" id="l-total" placeholder="Tổng nợ ban đầu (VNĐ)" required>
+      <input type="number" id="l-rem" placeholder="Nợ còn lại (VNĐ)" required>
+    </div>
+    <div class="g2">
+      <input type="number" id="l-rate" placeholder="Lãi suất (%/năm)" step="0.1" required>
+      <input type="number" id="l-pay" placeholder="Trả hàng tháng (VNĐ)" required>
+    </div>
+    <div class="flex justify-between mt-10">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn pri" onclick="saveLiab()">Lưu Khoản Nợ</button>
+    </div>
+  `);
+}
+
+function saveLiab() {
+  const name = $('#l-name').value;
+  const total = parseInt($('#l-total').value);
+  const rem = parseInt($('#l-rem').value);
+  if(!name || !total || !rem) return toast('Vui lòng nhập đủ thông tin');
+  const liabs = get('liabilities')||[];
+  liabs.push({ id: genId('l'), name, type: 'other', totalAmount: total, remainingAmount: rem, interestRate: parseFloat($('#l-rate').value)||0, monthlyPayment: parseInt($('#l-pay').value)||0 });
+  set('liabilities', liabs); closeModal(); toast('✅ Đã thêm khoản nợ'); refreshAllViews();
+}
+
+function deleteLiab(id) {
+  myConfirm('Bạn có chắc chắn muốn xóa?', () => {
+    set('liabilities', (get('liabilities')||[]).filter(l=>l.id!==id)); refreshAllViews();
+  });
+}
+
+function openGoalModal(id = null) {
+  const goals = get('goals')||[];
+  const g = id ? goals.find(x => x.id === id) : null;
+  const assets = get('assets')||[];
+  
+  openModal(`
+    <h3 class="mb-20">${id ? 'Sửa' : 'Thêm'} Mục Tiêu</h3>
+    <input type="text" id="g-name" placeholder="Tên mục tiêu" value="${g ? g.name : ''}" required>
+    <div class="g2">
+      <input type="number" id="g-target" placeholder="Số tiền mục tiêu (VNĐ)" value="${g ? g.targetAmount : ''}" required>
+      <input type="number" id="g-curr" placeholder="Đã có (VNĐ)" value="${g ? g.currentAmount : 0}" ${g && g.linkedAssetId ? 'disabled' : ''} required>
+    </div>
+    <input type="date" id="g-date" value="${g ? g.deadline.split('T')[0] : ''}" required>
+    <select id="g-asset" onchange="if(this.value) { $('#g-curr').disabled = true; $('#g-curr').value = 0; } else { $('#g-curr').disabled = false; }">
+      <option value="">-- Không liên kết tài sản --</option>
+      ${assets.map(a => `<option value="${a.id}" ${g && g.linkedAssetId === a.id ? 'selected' : ''}>${a.name} (${a.assetType})</option>`).join('')}
+    </select>
+    <div class="flex justify-between mt-10">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn pri" onclick="saveGoal('${id || ''}')">Lưu Mục Tiêu</button>
+    </div>
+  `);
+}
+
+function saveGoal(id) {
+  const name = $('#g-name').value;
+  const target = parseInt($('#g-target').value);
+  const curr = parseInt($('#g-curr').value) || 0;
+  const date = $('#g-date').value;
+  const assetId = $('#g-asset').value;
+  
+  if(!name || !target || !date) return toast('Vui lòng nhập đủ thông tin');
+  
+  let goals = get('goals')||[];
+  if (id) {
+    const idx = goals.findIndex(g => g.id === id);
+    if (idx > -1) {
+      goals[idx] = { ...goals[idx], name, targetAmount: target, currentAmount: curr, deadline: new Date(date).toISOString(), linkedAssetId: assetId || null };
+    }
+  } else {
+    goals.push({ id: genId('g'), name, type: 'other', targetAmount: target, currentAmount: curr, deadline: new Date(date).toISOString(), priority: 'medium', linkedAssetId: assetId || null });
+  }
+  
+  set('goals', goals); closeModal(); toast('✅ Đã lưu mục tiêu'); refreshAllViews();
+}
+
+function deleteGoal(id) {
+  myConfirm('Bạn có chắc chắn muốn xóa?', () => {
+    set('goals', (get('goals')||[]).filter(g=>g.id!==id)); refreshAllViews();
+  });
+}
+
+// TAB 6: BÁO CÁO
+function renderT6() {
+  const txs = get('transactions')||[];
+  const assets = get('assets')||[];
+  const now = new Date();
+  const year = now.getFullYear();
+  
+  // Report 1: Thu chi theo tháng
+  const monthlyData = [...Array(12)].map(()=>({thu:0, chi:0}));
+  txs.forEach(t => {
+    const d = new Date(t.date);
+    if(d.getFullYear() === year) {
+      if(t.type === 'income') monthlyData[d.getMonth()].thu += t.amount;
+      else monthlyData[d.getMonth()].chi += t.amount;
+    }
+  });
+
+  // Report 2: Phân bổ danh mục
+  const bucketTotals = {'Tăng trưởng vốn':0, 'Dòng tiền':0, 'Lướt sóng':0, 'Bảo đảm':0};
+  let totalAssetValue = 0;
+  assets.forEach(a => { 
+    const val = computeAssetPosition(a.id).currentValue;
+    bucketTotals[a.bucket] += val; 
+    totalAssetValue += val;
+  });
+
+  // Report 5: Tổng kết năm
+  const totalThu = monthlyData.reduce((s,d)=>s+d.thu,0);
+  const totalChi = monthlyData.reduce((s,d)=>s+d.chi,0);
+  
+  const assetTxs = get('asset_transactions')||[];
+  const totalInvestedAsset = assetTxs
+    .filter(t => t.action === 'BUY' && new Date(t.date).getFullYear() === year)
+    .reduce((s, t) => s + t.totalCash, 0);
+  const totalInvestedTx = txs
+    .filter(t => t.type === 'expense' && (t.category === 'Đầu tư' || t.category === 'Tiết kiệm') && new Date(t.date).getFullYear() === year)
+    .reduce((s, t) => s + t.amount, 0);
+  const totalInvested = totalInvestedAsset + totalInvestedTx;
+    
+  const savingsRate = totalThu > 0 ? ((totalThu - totalChi) / totalThu) * 100 : 0;
+
+  $('#t6').innerHTML = `
+    <div class="flex justify-between align-center mb-20">
+      <h2>Báo Cáo & Thống Kê (${year})</h2>
+      <button class="btn pri" onclick="exportData()">Xuất dữ liệu CSV/JSON</button>
+    </div>
+    
+    <div class="g4 mb-20">
+      <div class="card"><div class="text-mut">Tổng Thu</div><h2 class="text-pos">${fmt(totalThu)}</h2></div>
+      <div class="card"><div class="text-mut">Tổng Chi</div><h2 class="text-neg">${fmt(totalChi)}</h2></div>
+      <div class="card"><div class="text-mut">Đã Đầu Tư</div><h2 class="text-info">${fmt(totalInvested)}</h2></div>
+      <div class="card"><div class="text-mut">Tỷ Lệ Tiết Kiệm</div><h2 class="text-warn">${savingsRate.toFixed(1)}%</h2></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <h3>Thu Chi Theo Tháng</h3>
+        <canvas id="c-rep-tc"></canvas>
+      </div>
+      <div class="card">
+        <h3>Phân Bổ Danh Mục</h3>
+        <div class="g2">
+          <div>
+            <canvas id="c-rep-alloc-donut" style="max-height: 200px;"></canvas>
+          </div>
+          <div>
+            <table class="mt-10">
+              <tr style="background:var(--surf)"><th>Hũ</th><th>Giá trị</th><th>Tỷ trọng</th></tr>
+              ${Object.keys(bucketTotals).map(k => `
+                <tr>
+                  <td><span class="badge ${BUCKETS[k]||'bg-safe'}">${k}</span></td>
+                  <td>${fmt(bucketTotals[k])}</td>
+                  <td>${totalAssetValue > 0 ? ((bucketTotals[k]/totalAssetValue)*100).toFixed(1) : 0}%</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        </div>
+        <div class="mt-20">
+          <canvas id="c-rep-alloc-bar" style="max-height: 150px;"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>Hiệu Suất Đầu Tư</h3>
+      <table class="mt-10">
+        <tr style="background:var(--surf)"><th>Tài sản</th><th>Giá vốn</th><th>Giá trị HT</th><th>Lãi/Lỗ (₫)</th><th>ROI (%)</th></tr>
+        ${assets.map(a => {
+          const p = computeAssetPosition(a.id);
+          const roi = p.totalCost > 0 ? (p.unrealizedPnL / p.totalCost) * 100 : 0;
+          const pnlClass = p.unrealizedPnL > 0 ? 'text-pos' : (p.unrealizedPnL < 0 ? 'text-neg' : 'text-mut');
+          return `
+            <tr>
+              <td><strong>${a.name}</strong></td>
+              <td>${fmt(p.totalCost)}</td>
+              <td>${fmt(p.currentValue)}</td>
+              <td class="${pnlClass}">${p.unrealizedPnL > 0 ? '+':''}${fmt(p.unrealizedPnL)}</td>
+              <td class="${pnlClass}">${p.unrealizedPnL > 0 ? '+':''}${roi.toFixed(2)}%</td>
+            </tr>
+          `;
+        }).join('')}
+      </table>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <h3>Tài Sản Ròng Theo Thời Gian</h3>
+        <canvas id="c-rep-nw"></canvas>
+      </div>
+      <div class="card">
+        <h3>Phân Tích Thanh Khoản (Report 6)</h3>
+        ${(() => {
+          const layer1 = getCashBalance();
+          const savings = assets.filter(a => a.assetType === 'savings');
+          let layer2_30 = 0, layer2_90 = 0, layer2_more = 0;
+          savings.forEach(a => {
+            const pos = computeAssetPosition(a.id);
+            const days = daysBetween(new Date().toISOString().split('T')[0], a.maturityDate || new Date().toISOString().split('T')[0]);
+            if (days <= 30) layer2_30 += pos.currentValue;
+            else if (days <= 90) layer2_90 += pos.currentValue;
+            else layer2_more += pos.currentValue;
+          });
+          const layer2 = layer2_30 + layer2_90 + layer2_more;
+          const layer3 = assets.filter(a => a.assetType !== 'savings').reduce((s,a) => s + computeAssetPosition(a.id).currentValue, 0);
+          
+          const totalAssets = layer1 + layer2 + layer3;
+          const instantLiquidity = totalAssets > 0 ? (layer1 / totalAssets * 100).toFixed(1) : 0;
+          const liquidity90 = totalAssets > 0 ? ((layer1 + layer2_30 + layer2_90) / totalAssets * 100).toFixed(1) : 0;
+          
+          const avgExpense3M = computeRollingBase(3).avg;
+          const emergencyFundMonths = avgExpense3M > 0 ? (layer1 / avgExpense3M).toFixed(1) : 0;
+          let efBadge = emergencyFundMonths >= 6 ? '✅' : (emergencyFundMonths >= 3 ? '⚠️' : '🔴');
+
+          return `
+            <table class="mt-10 mb-20">
+              <tr style="background:var(--surf)"><th>Lớp tài sản</th><th class="text-right">Giá trị</th></tr>
+              <tr><td><strong>Layer 1 (Tiền mặt tức thì)</strong></td><td class="text-right">${fmt(layer1)}</td></tr>
+              <tr><td><strong>Layer 2 (Tiết kiệm)</strong></td><td class="text-right">${fmt(layer2)}</td></tr>
+              <tr><td class="text-mut" style="padding-left:20px;">- Đáo hạn < 30 ngày</td><td class="text-right text-mut">${fmt(layer2_30)}</td></tr>
+              <tr><td class="text-mut" style="padding-left:20px;">- Đáo hạn 30-90 ngày</td><td class="text-right text-mut">${fmt(layer2_90)}</td></tr>
+              <tr><td class="text-mut" style="padding-left:20px;">- Đáo hạn > 90 ngày</td><td class="text-right text-mut">${fmt(layer2_more)}</td></tr>
+              <tr><td><strong>Layer 3 (Đầu tư khác)</strong></td><td class="text-right">${fmt(layer3)}</td></tr>
+            </table>
+            <div class="g3 text-center mt-20">
+              <div class="p-10" style="background:var(--surf); border-radius:8px;">
+                <div class="text-mut text-sm">Thanh khoản tức thì</div>
+                <div class="text-xl mt-5">${instantLiquidity}%</div>
+              </div>
+              <div class="p-10" style="background:var(--surf); border-radius:8px;">
+                <div class="text-mut text-sm">Thanh khoản 90 ngày</div>
+                <div class="text-xl mt-5">${liquidity90}%</div>
+              </div>
+              <div class="p-10" style="background:var(--surf); border-radius:8px;">
+                <div class="text-mut text-sm">Quỹ khẩn cấp</div>
+                <div class="text-xl mt-5">${emergencyFundMonths} tháng ${efBadge}</div>
+              </div>
+            </div>
+          `;
+        })()}
+      </div>
+    </div>
+    
+    <div class="card mt-20">
+      <div class="flex justify-between align-center mb-10">
+        <h3>Tổng Kết Năm (Report 5)</h3>
+        <button class="btn pri" onclick="toast('Bắt đầu thiết lập năm mới')">Bắt đầu thiết lập năm mới →</button>
+      </div>
+      <div class="g2">
+        <div>
+          <canvas id="c-rep-rollover"></canvas>
+        </div>
+        <div>
+          <table class="mt-10">
+            <tr style="background:var(--surf)"><th>Hũ</th><th>Budget năm</th><th>Thực chi</th><th>Tiết kiệm</th><th>Hiệu suất</th><th>Tháng tốt</th><th>Tháng tệ</th></tr>
+            ${(get('allocation_rules')?.buckets||[]).map(r => {
+              let totalBudget = 0;
+              let totalSpent = 0;
+              let bestMonth = { m: '-', val: -Infinity };
+              let worstMonth = { m: '-', val: Infinity };
+              
+              for(let i=1; i<=12; i++) {
+                const m = `${year}-${i.toString().padStart(2,'0')}`;
+                if (m <= new Date().toISOString().slice(0,7)) {
+                  const b = computeMonthlyBucket(r.id, m);
+                  totalBudget += b.effectiveBudget;
+                  totalSpent += b.spentAmount;
+                  
+                  if (b.rolloverOut > bestMonth.val) { bestMonth = { m: `T${i}`, val: b.rolloverOut }; }
+                  if (b.rolloverOut < worstMonth.val) { worstMonth = { m: `T${i}`, val: b.rolloverOut }; }
+                }
+              }
+              
+              const saved = totalBudget - totalSpent;
+              const utilRate = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+              const perf = utilRate <= 100 ? 'Tốt' : 'Vượt NS';
+              const perfColor = utilRate <= 100 ? 'text-pos' : 'text-neg';
+
+              return `
+              <tr>
+                <td><strong style="color:${r.color}">${r.name}</strong></td>
+                <td>${fmt(totalBudget)}</td>
+                <td>${fmt(totalSpent)}</td>
+                <td class="${saved >= 0 ? 'text-pos' : 'text-neg'}">${saved >= 0 ? '+' : ''}${fmt(saved)}</td>
+                <td class="${perfColor}">${perf} (${utilRate.toFixed(0)}%)</td>
+                <td>${bestMonth.m}</td>
+                <td>${worstMonth.m}</td>
+              </tr>
+              `;
+            }).join('')}
+          </table>
+          <div class="mt-20 p-10" style="background:var(--surf); border-radius:8px;">
+            <h4 class="mb-5">Rule-based Insights:</h4>
+            <ul class="text-mut" style="margin-left:20px;">
+              ${(() => {
+                const rules = get('allocation_rules')?.buckets || [];
+                let bestBucket = { name: '-', saved: -Infinity };
+                let worstBucket = { name: '-', saved: Infinity };
+                const overspendBuckets = [];
+                
+                rules.forEach(r => {
+                  let totalSaved = 0;
+                  let overspendMonths = 0;
+                  for(let i=1; i<=12; i++) {
+                    const m = `${year}-${i.toString().padStart(2,'0')}`;
+                    if (m <= new Date().toISOString().slice(0,7)) {
+                      const b = computeMonthlyBucket(r.id, m);
+                      totalSaved += b.rolloverOut;
+                      if (b.status === 'over_budget') overspendMonths++;
+                    }
+                  }
+                  if (totalSaved > bestBucket.saved) bestBucket = { name: r.name, saved: totalSaved };
+                  if (totalSaved < worstBucket.saved) worstBucket = { name: r.name, saved: totalSaved };
+                  if (overspendMonths > 3) overspendBuckets.push(r.name);
+                });
+
+                const peakMonth = monthlyData.reduce((maxI, d, i, arr) => d.chi > arr[maxI].chi ? i : maxI, 0) + 1;
+                
+                let html = `<li>Tháng chi tiêu cao nhất (Peak spending): <strong>T${peakMonth}</strong></li>`;
+                html += `<li>Hũ tốt nhất (Best bucket): <strong>${bestBucket.name}</strong> (Tiết kiệm nhiều nhất)</li>`;
+                html += `<li>Hũ tệ nhất (Worst bucket): <strong>${worstBucket.name}</strong> (Vượt ngân sách nhiều nhất)</li>`;
+                
+                if (overspendBuckets.length > 0) {
+                  html += `<li>Hũ vượt ngân sách > 3 tháng: <strong>${overspendBuckets.join(', ')}</strong></li>`;
+                } else {
+                  html += `<li>Không có hũ nào vượt ngân sách quá 3 tháng.</li>`;
+                }
+
+                if (worstBucket.saved < 0 && bestBucket.saved > 0) {
+                  html += `<li>Đề xuất: Giảm tỷ lệ phân bổ của <strong>${bestBucket.name}</strong> để bù đắp cho <strong>${worstBucket.name}</strong>.</li>`;
+                } else {
+                  html += `<li>Đề xuất: Tỷ lệ phân bổ hiện tại khá ổn định.</li>`;
+                }
+
+                return html;
+              })()}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    if(charts['rep-tc']) charts['rep-tc'].destroy();
+    charts['rep-tc'] = new Chart($('#c-rep-tc'), {
+      type: 'bar',
+      data: {
+        labels: [...Array(12)].map((_,i)=>`T${i+1}`),
+        datasets: [
+          { label: 'Thu', data: monthlyData.map(d=>d.thu), backgroundColor: '#22C55E' },
+          { label: 'Chi', data: monthlyData.map(d=>d.chi), backgroundColor: '#EF4444' }
+        ]
+      },
+      options: { responsive: true, scales: { y: { grid: { color: '#2A2D3E' } }, x: { grid: { color: '#2A2D3E' } } } }
+    });
+
+    if(charts['rep-nw']) charts['rep-nw'].destroy();
+    const nw = getNetWorth();
+    const labels = []; const data = [];
+    for(let i=11; i>=0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      labels.push(`T${d.getMonth()+1}`);
+      data.push(nw.netWorth * (1 - i*0.02));
+    }
+    charts['rep-nw'] = new Chart($('#c-rep-nw'), {
+      type: 'line',
+      data: { labels, datasets: [{ label: 'Tài sản ròng', data, borderColor: '#4F8EF7', backgroundColor: 'rgba(79,142,247,0.1)', fill: true, tension: 0.4 }] },
+      options: { responsive: true, scales: { y: { grid: { color: '#2A2D3E' } }, x: { grid: { color: '#2A2D3E' } } }, plugins: { legend: { display: false } } }
+    });
+
+    if(charts['rep-alloc-donut']) charts['rep-alloc-donut'].destroy();
+    const allocLabels = Object.keys(bucketTotals);
+    const allocData = allocLabels.map(k => bucketTotals[k]);
+    const allocColors = allocLabels.map(k => BUCKET_COLORS[k]);
+    charts['rep-alloc-donut'] = new Chart($('#c-rep-alloc-donut'), {
+      type: 'doughnut',
+      data: { labels: allocLabels, datasets: [{ data: allocData, backgroundColor: allocColors, borderWidth: 0 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#F1F5F9' } } } }
+    });
+
+    if(charts['rep-alloc-bar']) charts['rep-alloc-bar'].destroy();
+    const settings = get('settings');
+    const targetData = allocLabels.map(k => settings.bucketTargets[k] || 0);
+    const actualDataPct = allocLabels.map(k => totalAssetValue > 0 ? (bucketTotals[k]/totalAssetValue)*100 : 0);
+    charts['rep-alloc-bar'] = new Chart($('#c-rep-alloc-bar'), {
+      type: 'bar',
+      data: {
+        labels: allocLabels,
+        datasets: [
+          { label: 'Thực tế (%)', data: actualDataPct, backgroundColor: allocColors },
+          { label: 'Mục tiêu (%)', data: targetData, backgroundColor: '#94A3B8' }
+        ]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        scales: { x: { grid: { color: '#2A2D3E' } }, y: { grid: { display: false } } },
+        plugins: { legend: { labels: { color: '#F1F5F9' } } }
+      }
+    });
+
+    if(charts['rep-rollover']) charts['rep-rollover'].destroy();
+    
+    // Calculate real cumulative rollover for the year
+    const rolloverDatasets = [];
+    const rules = get('allocation_rules')?.buckets || [];
+    
+    rules.forEach((r, idx) => {
+      const data = [];
+      let cumulative = 0;
+      for(let i=1; i<=12; i++) {
+        const m = `${year}-${i.toString().padStart(2,'0')}`;
+        if (m > new Date().toISOString().slice(0,7)) {
+          data.push(null);
+        } else {
+          const b = computeMonthlyBucket(r.id, m);
+          cumulative += b.rolloverOut;
+          data.push(cumulative);
+        }
+      }
+      rolloverDatasets.push({
+        label: r.name,
+        data: data,
+        borderColor: r.color || ['#4F8EF7', '#22C55E', '#F59E0B', '#A78BFA'][idx%4],
+        tension: 0.4,
+        fill: false
+      });
+    });
+
+    charts['rep-rollover'] = new Chart($('#c-rep-rollover'), {
+      type: 'line',
+      data: {
+        labels: [...Array(12)].map((_,i)=>`T${i+1}`),
+        datasets: rolloverDatasets
+      },
+      options: { 
+        responsive: true, 
+        scales: { y: { grid: { color: '#2A2D3E' } }, x: { grid: { color: '#2A2D3E' } } },
+        plugins: { legend: { labels: { color: '#F1F5F9' } } }
+      }
+    });
+  }, 50);
+}
+
+// TAB 7: AI INSIGHTS
+function renderT7() {
+  const key = get('settings').geminiApiKey;
+  $('#t7').innerHTML = `
+    <h2>AI Insights (Gemini)</h2>
+    <div class="card">
+      <div class="flex gap-10 mb-10 align-center">
+        <input type="password" id="ai-key" placeholder="Nhập Gemini API Key..." value="${key||''}" style="margin:0; flex:1;">
+        <button class="btn" onclick="const el=$('#ai-key'); el.type=el.type==='password'?'text':'password'">👁️</button>
+        <button class="btn pri" onclick="saveKey()">Lưu Key</button>
+      </div>
+      <div class="flex gap-10">
+        <button class="btn" onclick="testAIConnection()">Kiểm tra kết nối</button>
+        <button class="btn dan" onclick="clearAIKey()">Xóa Key</button>
+      </div>
+      <p class="text-mut mt-10" style="font-size:0.85rem;">Key chỉ lưu trên thiết bị, chỉ gửi tới api.google.com</p>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <h3>1. Phân tích chi tiêu bất thường</h3>
+        <p class="text-mut mb-10">AI sẽ phân tích 50 giao dịch gần nhất để tìm bất thường.</p>
+        <button class="btn" onclick="runAI(1)">Chạy Phân Tích</button>
+        <div id="ai-res-1" class="mt-10" style="line-height:1.6;"></div>
+      </div>
+      <div class="card">
+        <h3>2. Cảnh báo & tái cân bằng</h3>
+        <p class="text-mut mb-10">AI sẽ đánh giá phân bổ tài sản hiện tại so với mục tiêu.</p>
+        <button class="btn" onclick="runAI(2)">Nhận Tư Vấn</button>
+        <div id="ai-res-2" class="mt-10" style="line-height:1.6;"></div>
+      </div>
+      <div class="card" style="grid-column: span 2;">
+        <h3>3. Tra cứu lịch sử (AI Chat)</h3>
+        <div class="flex gap-10 mb-10">
+          <input type="text" id="ai-chat-input" placeholder="Hỏi AI về dữ liệu của bạn (VD: Tháng nào chi nhiều nhất?)" style="margin:0; flex:1;">
+          <button class="btn pri" onclick="runAIChat()">Gửi</button>
+        </div>
+        <div id="ai-chat-res" class="mt-10 p-10" style="line-height:1.6; background:var(--bg); border-radius:8px; min-height:100px;"></div>
+      </div>
+      <div class="card">
+        <h3>4. Dự báo & đánh giá</h3>
+        <p class="text-mut mb-10">Dự báo dòng tiền tháng tới dựa trên dữ liệu 6 tháng.</p>
+        <button class="btn" onclick="runAI(4)">Dự Báo</button>
+        <div id="ai-res-4" class="mt-10" style="line-height:1.6;"></div>
+      </div>
+      <div class="card">
+        <h3>5. Tối ưu tiền nhàn rỗi</h3>
+        <p class="text-mut mb-10">Đánh giá thanh khoản và gợi ý tối ưu dòng tiền.</p>
+        <button class="btn" onclick="runAI(5)">Tối Ưu</button>
+        <div id="ai-res-5" class="mt-10" style="line-height:1.6;"></div>
+      </div>
+      <div class="card">
+        <h3>6. Phân tích thu nhập không đều</h3>
+        <p class="text-mut mb-10">Phân tích biến động thu nhập và đề xuất mức đệm an toàn.</p>
+        <button class="btn" onclick="runAI(6)">Phân Tích Thu Nhập</button>
+        <div id="ai-res-6" class="mt-10" style="line-height:1.6;"></div>
+      </div>
+    </div>
+  `;
+}
+
+function saveKey() {
+  const s = get('settings');
+  s.geminiApiKey = $('#ai-key').value;
+  set('settings', s);
+  if ($('#s-ai-key')) $('#s-ai-key').value = s.geminiApiKey;
+  toast('✅ Đã lưu API Key');
+}
+
+async function runAI(type) {
+  const key = get('settings').geminiApiKey;
+  if(!key) return toast('⚠️ Vui lòng nhập API Key trước');
+  
+  const resDiv = $(`#ai-res-${type}`);
+  resDiv.innerHTML = '<span class="text-info">⏳ Đang phân tích dữ liệu...</span>';
+  
+  let prompt = "";
+  if(type === 1) {
+    const txs = (get('transactions')||[]).slice(-50);
+    prompt = `Đóng vai chuyên gia tài chính. Phân tích 50 giao dịch gần nhất này và chỉ ra 3 điểm bất thường hoặc xu hướng chi tiêu đáng chú ý. Dữ liệu: ${JSON.stringify(txs)}`;
+  } else if(type === 2) {
+    const assets = get('assets')||[];
+    prompt = `Đóng vai chuyên gia quản lý gia sản. Đánh giá danh mục tài sản sau và đưa ra 3 lời khuyên tái cân bằng ngắn gọn. Dữ liệu: ${JSON.stringify(assets)}`;
+  } else if(type === 4) {
+    const txs = (get('transactions')||[]).slice(-100);
+    prompt = `Dự báo dòng tiền tháng tới dựa trên dữ liệu giao dịch này. Đánh giá khả năng đạt mục tiêu tiết kiệm. Dữ liệu: ${JSON.stringify(txs)}`;
+  } else if(type === 5) {
+    const assets = get('assets')||[];
+    const cash = getCashBalance();
+    prompt = `Đánh giá thanh khoản hiện tại (Tiền mặt: ${cash}) và danh mục tài sản. Đưa ra 3 gợi ý cụ thể để tối ưu tiền nhàn rỗi. Dữ liệu tài sản: ${JSON.stringify(assets)}`;
+  } else if(type === 6) {
+    const txs = get('transactions')||[];
+    const incomeTxs = txs.filter(t => t.type === 'income');
+    prompt = `Phân tích biến động thu nhập dựa trên dữ liệu thu nhập sau. Đề xuất mức đệm an toàn (quỹ dự phòng) cần thiết và 1 mẹo ổn định dòng tiền. Dữ liệu: ${JSON.stringify(incomeTxs.slice(-50))}`;
+  }
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key=${key}`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({contents:[{parts:[{text: prompt}]}], generationConfig:{temperature:0.3, maxOutputTokens:800}})
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message);
+    let text = d.candidates[0].content.parts[0].text;
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    resDiv.innerHTML = text;
+  } catch(e) {
+    resDiv.innerHTML = `<span class="text-neg">❌ Lỗi: ${e.message}</span>`;
+  }
+}
+
+async function runAIChat() {
+  const key = get('settings').geminiApiKey;
+  if(!key) return toast('⚠️ Vui lòng nhập API Key trước');
+  const input = $('#ai-chat-input').value;
+  if(!input) return;
+  
+  const resDiv = $('#ai-chat-res');
+  resDiv.innerHTML = '<span class="text-info">⏳ Đang suy nghĩ...</span>';
+  
+  const txs = get('transactions')||[];
+  const assets = get('assets')||[];
+  const prompt = `Dữ liệu giao dịch: ${JSON.stringify(txs.slice(-100))}. Dữ liệu tài sản: ${JSON.stringify(assets)}. Câu hỏi của người dùng: "${input}". Hãy trả lời ngắn gọn, chính xác dựa trên dữ liệu.`;
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key=${key}`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({contents:[{parts:[{text: prompt}]}], generationConfig:{temperature:0.3, maxOutputTokens:800}})
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message);
+    let text = d.candidates[0].content.parts[0].text;
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    resDiv.innerHTML = `<strong>Bạn:</strong> ${input}<br><br><strong>AI:</strong> ${text}`;
+    $('#ai-chat-input').value = '';
+  } catch(e) {
+    resDiv.innerHTML = `<span class="text-neg">❌ Lỗi: ${e.message}</span>`;
+  }
+}
+
+// TAB 8: CÀI ĐẶT
+function renderT8() {
+  const accs = get('cash_accounts')||[];
+  const s = get('settings')||{};
+  const rules = get('allocation_rules')?.buckets || [];
+  
+  const allocTotal = rules.reduce((s, r) => s + r.percentage, 0);
+  const allocTotalClass = allocTotal === 100 ? 'text-pos' : 'text-neg';
+  const allocBtnStyle = allocTotal === 100 ? '' : 'disabled style="opacity:0.5"';
+  const allocWarnStyle = allocTotal === 100 ? 'display:none;' : 'display:block;';
+
+  const btTotal = Object.values(s.bucketTargets||{}).reduce((s, v) => s + v, 0);
+  const btTotalClass = btTotal === 100 ? 'text-pos' : 'text-neg';
+  const btBtnStyle = btTotal === 100 ? '' : 'disabled style="opacity:0.5"';
+  const btWarnStyle = btTotal === 100 ? 'display:none;' : 'display:block;';
+  
+  let rulesHtml = rules.map(r => `
+    <div class="mb-10">
+      <div class="flex justify-between mb-10">
+        <span style="color:${r.color}">${r.name}</span>
+        <div class="flex gap-10 align-center">
+          <span id="pct-val-${r.id}"><strong>${r.percentage}%</strong></span>
+          ${r.id !== 'alloc_1' ? `<button class="btn dan" style="padding:2px 6px" onclick="deleteAllocRule('${r.id}')">Xóa</button>` : ''}
+        </div>
+      </div>
+      <input type="range" min="0" max="100" value="${r.percentage}" 
+             oninput="updateBucketPct('${r.id}', this.value)" 
+             id="pct-input-${r.id}" style="margin:0; cursor:pointer;">
+    </div>
+  `).join('');
+
+  $('#t8').innerHTML = `
+    <h2>Cài Đặt Hệ Thống</h2>
+    <div class="g2">
+      <div class="card">
+        <h3>Tài khoản tiền mặt</h3>
+        <ul style="list-style:none; padding:0; margin-bottom:15px;">
+          ${accs.map(a => `
+            <li class="flex justify-between mb-10 border-bottom pb-10 align-center">
+              <div class="flex gap-10 align-center">
+                <input type="checkbox" ${a.isActive ? 'checked' : ''} onchange="toggleAcc('${a.id}', this.checked)" title="Kích hoạt/Vô hiệu hóa">
+                <span style="text-decoration: ${a.isActive ? 'none' : 'line-through'}; opacity: ${a.isActive ? 1 : 0.5}">${a.name} (${a.type})</span>
+              </div>
+              <div class="flex gap-10">
+                <button class="btn" style="padding:2px 6px" onclick="renameAcc('${a.id}')">Sửa</button>
+                <button class="btn dan" style="padding:2px 6px" onclick="deleteAcc('${a.id}')">Xóa</button>
+              </div>
+            </li>
+          `).join('')}
+        </ul>
+        <div class="flex gap-10">
+          <input type="text" id="c-acc-name" placeholder="Tên tài khoản" style="margin:0">
+          <select id="c-acc-type" style="margin:0"><option value="bank">Ngân hàng</option><option value="ewallet">Ví điện tử</option><option value="cash">Tiền mặt</option></select>
+          <button class="btn pri" onclick="addAcc()">Thêm</button>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="flex justify-between align-center mb-10">
+          <h3>Cấu hình Ngân sách (Quy tắc phân bổ)</h3>
+          <button class="btn" onclick="openAddAllocRuleModal()">+ Thêm Hũ</button>
+        </div>
+        <div id="alloc-rules-container">
+          ${rulesHtml}
+        </div>
+        <div class="flex justify-between align-center mt-20 pt-10" style="border-top: 1px solid var(--bord); padding-top: 15px;">
+          <span id="alloc-total" class="text-pos" style="font-weight:bold;">Tổng: 100%</span>
+          <button id="btn-save-alloc" class="btn pri" onclick="saveAllocationRules()">Lưu cấu hình</button>
+        </div>
+        <p id="alloc-warn" class="text-neg mt-10" style="display:none; font-size:0.85rem;">Tổng phân bổ phải bằng đúng 100%.</p>
+        
+        <h4 class="mt-20 mb-10">Ánh xạ Danh mục -> Hũ</h4>
+        <table style="width:100%; text-align:left;">
+          <tr style="background:var(--surf)"><th>Danh mục chi</th><th>Hũ phân bổ</th></tr>
+          ${(get('categories')?.expense||[]).map(c => `
+            <tr>
+              <td>${c}</td>
+              <td>
+                <select onchange="updateCatMap('${c}', this.value)" style="margin:0; padding:4px;">
+                  ${rules.map(r => `<option value="${r.id}" ${(get('category_allocation_map')||{})[c]===r.id?'selected':''}>${r.name}</option>`).join('')}
+                </select>
+              </td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+      
+      <div class="card">
+        <h3>Tùy chọn chung</h3>
+        <div class="flex justify-between mb-10">
+          <span>Chế độ thu nhập</span>
+          <select id="s-inc-mode" onchange="updateSettings('incomeMode', this.value)" style="width:150px; margin:0;">
+            <option value="irregular" ${s.incomeMode==='irregular'?'selected':''}>Không đều</option>
+            <option value="fixed" ${s.incomeMode==='fixed'?'selected':''}>Cố định</option>
+          </select>
+        </div>
+        <div class="flex justify-between mb-10">
+          <span>Kỳ tính trung bình (tháng)</span>
+          <select id="s-roll-win" onchange="updateSettings('rollingWindow', parseInt(this.value))" style="width:150px; margin:0;">
+            <option value="3" ${s.rollingWindow===3?'selected':''}>3 tháng</option>
+            <option value="6" ${s.rollingWindow===6?'selected':''}>6 tháng</option>
+            <option value="12" ${s.rollingWindow===12?'selected':''}>12 tháng</option>
+          </select>
+        </div>
+        <div class="flex justify-between mb-10">
+          <span>Ngưỡng phân bổ tối thiểu (VNĐ)</span>
+          <input type="number" id="s-min-alloc" value="${s.minAllocationTrigger||0}" onchange="updateSettings('minAllocationTrigger', parseInt(this.value))" style="width:150px; margin:0;">
+        </div>
+        <div class="flex justify-between mb-10">
+          <span>Thu nhập thụ động mặc định</span>
+          <select id="s-pass-def" onchange="updateSettings('passiveIncomeDefault', this.value)" style="width:150px; margin:0;">
+            <option value="reinvest" ${s.passiveIncomeDefault==='reinvest'?'selected':''}>Tái đầu tư</option>
+            <option value="allocate" ${s.passiveIncomeDefault==='allocate'?'selected':''}>Phân bổ</option>
+            <option value="cash" ${s.passiveIncomeDefault==='cash'?'selected':''}>Tiền mặt</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Mục tiêu danh mục (Bucket Targets)</h3>
+        <div id="bucket-targets-container">
+          ${Object.keys(s.bucketTargets||{}).map(k => `
+            <div class="mb-10">
+              <div class="flex justify-between mb-10">
+                <span>${k}</span>
+                <span id="bt-val-${k}"><strong>${s.bucketTargets[k]}%</strong></span>
+              </div>
+              <input type="range" min="0" max="100" value="${s.bucketTargets[k]}" 
+                     oninput="updateBucketTarget('${k}', this.value)" 
+                     id="bt-input-${k}" style="margin:0; cursor:pointer;">
+            </div>
+          `).join('')}
+        </div>
+        <div class="flex justify-between align-center mt-20 pt-10" style="border-top: 1px solid var(--bord); padding-top: 15px;">
+          <span id="bt-total" class="text-pos" style="font-weight:bold;">Tổng: 100%</span>
+          <button id="btn-save-bt" class="btn pri" onclick="saveBucketTargets()">Lưu mục tiêu</button>
+        </div>
+        <p id="bt-warn" class="text-neg mt-10" style="display:none; font-size:0.85rem;">Tổng mục tiêu phải bằng đúng 100%.</p>
+        <div class="flex justify-between mt-20">
+          <span>Ngưỡng cảnh báo tái cân bằng (%)</span>
+          <input type="number" id="s-reb-thresh" value="${s.rebalanceThreshold||10}" onchange="updateSettings('rebalanceThreshold', parseInt(this.value))" style="width:150px; margin:0;">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Cài đặt AI (Gemini)</h3>
+        <div class="flex gap-10 mb-10">
+          <input type="password" id="s-ai-key" placeholder="Nhập Gemini API Key..." value="${s.geminiApiKey||''}" style="margin:0; flex:1;">
+          <button class="btn pri" onclick="saveAIKey()">Lưu Key</button>
+        </div>
+        <div class="flex gap-10">
+          <button class="btn" onclick="testAIConnection()">Kiểm tra kết nối</button>
+          <button class="btn dan" onclick="clearAIKey()">Xóa Key</button>
+        </div>
+        <p class="text-mut mt-10" style="font-size:0.85rem;">Key chỉ lưu trên thiết bị, chỉ gửi tới api.google.com</p>
+      </div>
+
+      <div class="card">
+        <h3>Quản lý Danh mục</h3>
+        <div class="flex gap-10 mb-10">
+          <select id="s-cat-type" style="margin:0"><option value="expense">Chi tiền</option><option value="income">Thu tiền</option></select>
+          <input type="text" id="s-cat-name" placeholder="Tên danh mục mới" style="margin:0; flex:1;">
+          <button class="btn pri" onclick="addCategory()">Thêm</button>
+        </div>
+        <div class="g2">
+          <div>
+            <h4 class="mb-10 text-neg">Chi tiền</h4>
+            <ul style="list-style:none; padding:0;">
+              ${(get('categories')?.expense||[]).map(c => `
+                <li class="flex justify-between mb-5 align-center">
+                  <span>${c}</span> 
+                  <div class="flex gap-10">
+                    <button class="btn" style="padding:2px 6px" onclick="renameCategory('expense', '${c}')">Sửa</button>
+                    <button class="btn dan" style="padding:2px 6px" onclick="deleteCategory('expense', '${c}')">Xóa</button>
+                  </div>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          <div>
+            <h4 class="mb-10 text-pos">Thu tiền</h4>
+            <ul style="list-style:none; padding:0;">
+              ${(get('categories')?.income||[]).map(c => `
+                <li class="flex justify-between mb-5 align-center">
+                  <span>${c}</span> 
+                  <div class="flex gap-10">
+                    <button class="btn" style="padding:2px 6px" onclick="renameCategory('income', '${c}')">Sửa</button>
+                    <button class="btn dan" style="padding:2px 6px" onclick="deleteCategory('income', '${c}')">Xóa</button>
+                  </div>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Giao dịch định kỳ</h3>
+        <p class="text-mut mb-10">Các giao dịch này sẽ tự động được gợi ý vào đầu mỗi tháng.</p>
+        <button class="btn pri mb-10" onclick="openRecurringModal()">+ Thêm Giao Dịch Định Kỳ</button>
+        <ul style="list-style:none; padding:0;">
+          ${(get('recurring')||[]).map(r => `
+            <li class="card mb-10" style="padding:10px;">
+              <div class="flex justify-between">
+                <strong>${r.name}</strong>
+                <span class="${r.type==='income'?'text-pos':'text-neg'}">${fmt(r.amount)}</span>
+              </div>
+              <div class="text-mut mt-5">Ngày ${r.dayOfMonth} hàng tháng | ${r.category} | Tự động: ${r.autoApply?'Có':'Không'}</div>
+              <div class="flex gap-10 mt-10">
+                <button class="btn" style="padding:4px 8px" onclick="openRecurringModal('${r.id}')">Sửa</button>
+                <button class="btn dan" style="padding:4px 8px" onclick="deleteRecurring('${r.id}')">Xóa</button>
+              </div>
+            </li>
+          `).join('')}
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Dữ liệu & Sao lưu</h3>
+        <p class="text-mut mb-10">Dữ liệu được lưu trữ an toàn trên trình duyệt của bạn (localStorage).</p>
+        <div class="flex gap-10 mb-20">
+          <button class="btn pri" onclick="exportData()">⬇️ Tải file Backup (JSON)</button>
+          <label class="btn" style="cursor:pointer;">
+            ⬆️ Nhập file Backup
+            <input type="file" accept=".json" style="display:none;" onchange="importData(event)">
+          </label>
+          <button class="btn dan" onclick="clearData()">⚠️ Xóa toàn bộ dữ liệu</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+window.importData = function(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      const json = JSON.parse(evt.target.result);
+      if(!json.data || !json.version) throw new Error('File không hợp lệ');
+      myConfirm('⚠️ GHI ĐÈ toàn bộ dữ liệu hiện tại. Bạn có chắc chắn?', () => {
+        Object.keys(json.data).forEach(k => ls.setItem(k, JSON.stringify(json.data[k])));
+        toast('✅ Đã khôi phục dữ liệu thành công!');
+        setTimeout(() => location.reload(), 1000);
+      });
+    } catch(err) {
+      toast('❌ Lỗi: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+window.updateBucketPct = function(id, val) {
+  $('#pct-val-' + id).innerHTML = `<strong>${val}%</strong>`;
+  
+  const rules = get('allocation_rules')?.buckets || [];
+  let total = 0;
+  rules.forEach(r => {
+    total += parseInt($('#pct-input-' + r.id).value) || 0;
+  });
+  
+  const totalEl = $('#alloc-total');
+  const btnSave = $('#btn-save-alloc');
+  const warnEl = $('#alloc-warn');
+  
+  totalEl.innerText = `Tổng: ${total}%`;
+  
+  if (total === 100) {
+    totalEl.className = 'text-pos';
+    btnSave.disabled = false;
+    btnSave.style.opacity = '1';
+    warnEl.style.display = 'none';
+  } else {
+    totalEl.className = 'text-neg';
+    btnSave.disabled = true;
+    btnSave.style.opacity = '0.5';
+    warnEl.style.display = 'block';
+  }
+}
+
+window.saveAllocationRules = function() {
+  const allocData = get('allocation_rules');
+  let total = 0;
+  allocData.buckets.forEach(r => {
+    const val = parseInt($('#pct-input-' + r.id).value) || 0;
+    r.percentage = val;
+    total += val;
+  });
+  
+  if (total !== 100) return toast('Tổng phân bổ phải bằng 100%');
+  
+  set('allocation_rules', allocData);
+  toast('✅ Đã lưu cấu hình phân bổ ngân sách');
+  refreshAllViews();
+}
+
+window.openAddAllocRuleModal = function() {
+  openModal(`
+    <h3 class="mb-20">Thêm Hũ Phân Bổ Mới</h3>
+    <input type="text" id="ar-name" placeholder="Tên hũ (VD: Đầu tư mạo hiểm)" required>
+    <div class="flex gap-10 mb-10">
+      <select id="ar-type" style="margin:0; flex:1;">
+        <option value="investment_bucket">Đầu tư</option>
+        <option value="saving_goal">Tiết kiệm</option>
+        <option value="expense_budget">Chi tiêu</option>
+      </select>
+      <input type="color" id="ar-color" value="#4F8EF7" style="margin:0; width:50px; height:38px; padding:0;">
+    </div>
+    <div class="flex justify-between mt-20">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn pri" onclick="saveNewAllocRule()">Lưu</button>
+    </div>
+  `);
+}
+
+window.saveNewAllocRule = function() {
+  const name = $('#ar-name').value;
+  const type = $('#ar-type').value;
+  const color = $('#ar-color').value;
+  if (!name) return toast('Vui lòng nhập tên hũ');
+
+  const allocData = get('allocation_rules');
+  allocData.buckets.push({
+    id: genId('alloc'),
+    name,
+    percentage: 0,
+    color,
+    icon: '📦',
+    type,
+    linkedBucket: type === 'investment_bucket' ? name : null
+  });
+  set('allocation_rules', allocData);
+  closeModal();
+  refreshAllViews();
+  toast('✅ Đã thêm hũ mới. Vui lòng điều chỉnh lại tỷ lệ %.');
+}
+
+window.deleteAllocRule = function(id) {
+  myConfirm('Xóa hũ này? Các giao dịch cũ có thể bị ảnh hưởng.', () => {
+    const allocData = get('allocation_rules');
+    allocData.buckets = allocData.buckets.filter(b => b.id !== id);
+    set('allocation_rules', allocData);
+    refreshAllViews();
+    toast('✅ Đã xóa hũ. Vui lòng điều chỉnh lại tỷ lệ %.');
+  });
+}
+
+window.updateBucketTarget = function(k, val) {
+  $('#bt-val-' + k).innerHTML = `<strong>${val}%</strong>`;
+  
+  const targets = get('settings').bucketTargets || {};
+  let total = 0;
+  Object.keys(targets).forEach(key => {
+    total += parseInt($('#bt-input-' + key).value) || 0;
+  });
+  
+  const totalEl = $('#bt-total');
+  const btnSave = $('#btn-save-bt');
+  const warnEl = $('#bt-warn');
+  
+  totalEl.innerText = `Tổng: ${total}%`;
+  
+  if (total === 100) {
+    totalEl.className = 'text-pos';
+    btnSave.disabled = false;
+    btnSave.style.opacity = '1';
+    warnEl.style.display = 'none';
+  } else {
+    totalEl.className = 'text-neg';
+    btnSave.disabled = true;
+    btnSave.style.opacity = '0.5';
+    warnEl.style.display = 'block';
+  }
+}
+
+window.saveBucketTargets = function() {
+  const s = get('settings');
+  const targets = s.bucketTargets || {};
+  let total = 0;
+  Object.keys(targets).forEach(k => {
+    const val = parseInt($('#bt-input-' + k).value) || 0;
+    targets[k] = val;
+    total += val;
+  });
+  
+  if (total !== 100) return toast('Tổng mục tiêu phải bằng 100%');
+  
+  s.bucketTargets = targets;
+  set('settings', s);
+  toast('✅ Đã lưu mục tiêu danh mục');
+}
+
+window.saveAIKey = function() {
+  const s = get('settings');
+  s.geminiApiKey = $('#s-ai-key').value;
+  set('settings', s);
+  if ($('#ai-key')) $('#ai-key').value = s.geminiApiKey;
+  toast('✅ Đã lưu API Key');
+}
+
+window.testAIConnection = async function() {
+  const key = get('settings').geminiApiKey;
+  if(!key) return toast('Vui lòng nhập API Key trước');
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent?key=${key}`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({contents:[{parts:[{text: "Say hi"}]}], generationConfig:{maxOutputTokens:10}})
+    });
+    const d = await res.json();
+    if(d.error) throw new Error(d.error.message);
+    toast('✅ Kết nối thành công!');
+  } catch(e) {
+    toast('❌ Lỗi kết nối: ' + e.message);
+  }
+}
+
+window.clearAIKey = function() {
+  myConfirm('Xóa Gemini API Key?', () => {
+    const s = get('settings');
+    s.geminiApiKey = '';
+    set('settings', s);
+    if ($('#s-ai-key')) $('#s-ai-key').value = '';
+    if ($('#ai-key')) $('#ai-key').value = '';
+    toast('✅ Đã xóa API Key');
+  });
+}
+
+window.updateCatMap = function(cat, allocId) {
+  const map = get('category_allocation_map')||{};
+  map[cat] = allocId;
+  set('category_allocation_map', map);
+  toast('✅ Đã cập nhật ánh xạ');
+}
+
+window.addCategory = function() {
+  const type = $('#s-cat-type').value;
+  const name = $('#s-cat-name').value;
+  if(!name) return;
+  const cats = get('categories')||{income:[], expense:[]};
+  if(!cats[type].includes(name)) {
+    cats[type].push(name);
+    set('categories', cats);
+    toast('✅ Đã thêm danh mục');
+    refreshAllViews();
+  }
+}
+
+window.renameCategory = function(type, oldName) {
+  myPrompt(`Đổi tên danh mục "${oldName}" thành:`, oldName, (newName) => {
+    if (newName && newName.trim() !== '' && newName !== oldName) {
+      const cats = get('categories');
+      if (cats[type].includes(newName.trim())) {
+        return toast('Tên danh mục đã tồn tại!');
+      }
+      const idx = cats[type].indexOf(oldName);
+      if (idx > -1) {
+        cats[type][idx] = newName.trim();
+        set('categories', cats);
+        
+        // Update existing transactions
+        const txs = get('transactions') || [];
+        let updated = false;
+        txs.forEach(t => {
+          if (t.type === type && t.category === oldName) {
+            t.category = newName.trim();
+            updated = true;
+          }
+        });
+        if (updated) set('transactions', txs);
+        
+        // Update recurring
+        const recs = get('recurring') || [];
+        let recUpdated = false;
+        recs.forEach(r => {
+          if (r.type === type && r.category === oldName) {
+            r.category = newName.trim();
+            recUpdated = true;
+          }
+        });
+        if (recUpdated) set('recurring', recs);
+
+        // Update category mapping if expense
+        if (type === 'expense') {
+          const map = get('category_allocation_map') || {};
+          if (map[oldName]) {
+            map[newName.trim()] = map[oldName];
+            delete map[oldName];
+            set('category_allocation_map', map);
+          }
+        }
+
+        toast('✅ Đã đổi tên danh mục');
+        refreshAllViews();
+      }
+    }
+  });
+}
+
+window.deleteCategory = function(type, name) {
+  myConfirm(`Xóa danh mục "${name}"?`, () => {
+    const cats = get('categories');
+    cats[type] = cats[type].filter(c => c !== name);
+    set('categories', cats);
+    refreshAllViews();
+  });
+}
+
+window.openRecurringModal = function(id = null) {
+  const cats = get('categories');
+  const accs = get('cash_accounts')||[];
+  let r = null;
+  if (id) {
+    r = (get('recurring')||[]).find(x => x.id === id);
+  }
+  
+  openModal(`
+    <h3 class="mb-20">${r ? 'Sửa' : 'Thêm'} Giao Dịch Định Kỳ</h3>
+    <input type="hidden" id="r-id" value="${r ? r.id : ''}">
+    <input type="text" id="r-name" placeholder="Tên giao dịch" value="${r ? r.name : ''}" required>
+    <div class="flex gap-10 mb-10">
+      <select id="r-type" onchange="updateRCatOptions()" style="margin:0">
+        <option value="expense" ${r && r.type==='expense' ? 'selected' : ''}>Chi tiền</option>
+        <option value="income" ${r && r.type==='income' ? 'selected' : ''}>Thu tiền</option>
+      </select>
+      <input type="number" id="r-day" placeholder="Ngày trong tháng (1-31)" min="1" max="31" value="${r ? r.dayOfMonth : ''}" style="margin:0" required>
+    </div>
+    <input type="number" id="r-amt" placeholder="Số tiền (VNĐ)" value="${r ? r.amount : ''}" required>
+    <div class="g2">
+      <select id="r-cat">
+        ${cats[r ? r.type : 'expense'].map(c => `<option value="${c}" ${r && r.category===c ? 'selected' : ''}>${c}</option>`).join('')}
+      </select>
+      <select id="r-acc">
+        ${accs.map(a => `<option value="${a.id}" ${r && r.accountId===a.id ? 'selected' : ''}>${a.name}</option>`).join('')}
+      </select>
+    </div>
+    <label class="flex mt-10"><input type="checkbox" id="r-auto" ${!r || r.autoApply ? 'checked' : ''} style="width:auto;margin:0"> Tự động áp dụng</label>
+    <div class="flex justify-between mt-20">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn pri" onclick="saveRecurring()">Lưu</button>
+    </div>
+  `);
+}
+
+window.updateRCatOptions = function() {
+  const type = $('#r-type').value;
+  const cats = get('categories')[type];
+  $('#r-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+window.saveRecurring = function() {
+  const id = $('#r-id').value;
+  const name = $('#r-name').value;
+  const type = $('#r-type').value;
+  const day = parseInt($('#r-day').value);
+  const amt = parseInt($('#r-amt').value);
+  const cat = $('#r-cat').value;
+  const acc = $('#r-acc').value;
+  const auto = $('#r-auto').checked;
+  
+  if(!name || !day || !amt) return toast('Vui lòng nhập đủ thông tin');
+  
+  const recs = get('recurring')||[];
+  if (id) {
+    const idx = recs.findIndex(x => x.id === id);
+    if (idx > -1) {
+      recs[idx] = { ...recs[idx], name, type, amount: amt, category: cat, accountId: acc, dayOfMonth: day, autoApply: auto };
+    }
+  } else {
+    recs.push({id: genId('r'), name, type, amount: amt, category: cat, accountId: acc, dayOfMonth: day, isActive: true, autoApply: auto});
+  }
+  set('recurring', recs);
+  closeModal();
+  toast('✅ Đã lưu giao dịch định kỳ');
+  refreshAllViews();
+}
+
+window.deleteRecurring = function(id) {
+  myConfirm('Bạn có chắc chắn muốn xóa?', () => {
+    set('recurring', (get('recurring')||[]).filter(r=>r.id!==id));
+    refreshAllViews();
+  });
+}
+
+window.updateSettings = function(key, val) {
+  const s = get('settings');
+  s[key] = val;
+  set('settings', s);
+  toast('✅ Đã cập nhật cài đặt');
+}
+
+function addAcc() {
+  const name = $('#c-acc-name').value;
+  if(!name) return;
+  const accs = get('cash_accounts')||[];
+  accs.push({id: genId('a'), name, type: $('#c-acc-type').value, isActive: true});
+  set('cash_accounts', accs); toast('✅ Đã thêm tài khoản'); refreshAllViews();
+}
+
+window.renameAcc = function(id) {
+  const accs = get('cash_accounts')||[];
+  const acc = accs.find(a => a.id === id);
+  if (!acc) return;
+  myPrompt('Nhập tên mới:', acc.name, (newName) => {
+    if (newName && newName.trim() !== '') {
+      acc.name = newName.trim();
+      set('cash_accounts', accs);
+      refreshAllViews();
+      toast('✅ Đã đổi tên tài khoản');
+    }
+  });
+}
+
+window.toggleAcc = function(id, isActive) {
+  const accs = get('cash_accounts')||[];
+  const acc = accs.find(a => a.id === id);
+  if (!acc) return;
+  acc.isActive = isActive;
+  set('cash_accounts', accs);
+  refreshAllViews();
+  toast(isActive ? '✅ Đã kích hoạt tài khoản' : '✅ Đã vô hiệu hóa tài khoản');
+}
+
+function deleteAcc(id) {
+  myConfirm('Xóa tài khoản có thể ảnh hưởng đến các giao dịch cũ. Tiếp tục?', () => {
+    set('cash_accounts', (get('cash_accounts')||[]).filter(a=>a.id!==id)); refreshAllViews();
+  });
+}
+
+function exportData() {
+  const data = {};
+  for(let i=0; i<ls.length; i++) {
+    const k = ls.key(i);
+    if(k.startsWith('wm_')) data[k] = JSON.parse(ls.getItem(k));
+  }
+  const blob = new Blob([JSON.stringify({version:"1.0", exportDate: new Date().toISOString(), data}, null, 2)], {type: "application/json"});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `wealth-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  
+  const s = get('settings');
+  s.lastBackupDate = new Date().toISOString();
+  set('settings', s);
+  refreshAllViews();
+}
+
+window.importData = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const json = JSON.parse(e.target.result);
+      if (json.version !== "1.0" || !json.data) {
+        return toast('File backup không hợp lệ hoặc sai phiên bản.');
+      }
+      
+      myConfirm('⚠️ GHI ĐÈ toàn bộ dữ liệu hiện tại. Bạn có chắc chắn xác nhận?', () => {
+        // Clear existing wm_ keys
+        const keysToRemove = [];
+        for(let i=0; i<ls.length; i++) {
+          if(ls.key(i).startsWith('wm_')) keysToRemove.push(ls.key(i));
+        }
+        keysToRemove.forEach(k => ls.removeItem(k));
+        
+        // Import new keys
+        Object.keys(json.data).forEach(k => {
+          if (k.startsWith('wm_')) {
+            ls.setItem(k, JSON.stringify(json.data[k]));
+          }
+        });
+        
+        const txCount = (get('transactions')||[]).length;
+        const assetCount = (get('assets')||[]).length;
+        myAlert(`✅ Khôi phục thành công. ${txCount} giao dịch, ${assetCount} tài sản.`);
+        setTimeout(() => location.reload(), 2000);
+      });
+    } catch (err) {
+      myAlert('Lỗi đọc file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Reset file input
+}
+
+function clearData() {
+  myPrompt('Gõ chữ "XÓA" để xác nhận xóa toàn bộ dữ liệu (không thể khôi phục):', '', (val) => {
+    if(val === 'XÓA') {
+      const keys = [];
+      for(let i=0; i<ls.length; i++) if(ls.key(i).startsWith('wm_')) keys.push(ls.key(i));
+      keys.forEach(k => ls.removeItem(k));
+      location.reload();
+    }
+  });
+}
+
+// --- FAB QUICK ADD ---
+function openFab() {
+  const cats = get('categories');
+  const accs = get('cash_accounts')||[];
+  openModal(`
+    <h3 class="mb-20">Thêm Giao Dịch Mới</h3>
+    <div class="flex gap-10 mb-10">
+      <select id="f-type" onchange="updateCatOptions()" style="margin:0"><option value="expense">Chi tiền</option><option value="income">Thu tiền</option></select>
+      <input type="date" id="f-date" value="${new Date().toISOString().split('T')[0]}" style="margin:0">
+    </div>
+    <input type="number" id="f-amt" placeholder="Số tiền (VNĐ)" required>
+    <div class="g2">
+      <select id="f-cat"></select>
+      <select id="f-acc">
+        ${accs.map(a => `<option value="${a.id}">${a.name}</option>`).join('')}
+      </select>
+    </div>
+    <div id="f-inc-options" style="display:none;" class="g2 mb-10">
+      <select id="f-inc-src">
+        <option value="salary">Lương</option><option value="freelance">Freelance</option>
+        <option value="investment">Đầu tư</option><option value="rental">Cho thuê</option>
+        <option value="bonus">Thưởng</option><option value="other">Khác</option>
+      </select>
+      <label class="flex"><input type="checkbox" id="f-trigger-alloc" checked style="width:auto;margin:0"> Phân bổ ngân sách</label>
+    </div>
+    <input type="text" id="f-desc" placeholder="Mô tả chi tiết">
+    <div class="flex justify-between mt-10">
+      <button class="btn" onclick="closeModal()">Hủy</button>
+      <button class="btn pri" onclick="saveTx()">Lưu Giao Dịch</button>
+    </div>
+  `);
+  updateCatOptions();
+}
+
+window.updateCatOptions = function() {
+  const type = $('#f-type').value;
+  const cats = get('categories')[type];
+  $('#f-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  $('#f-inc-options').style.display = type === 'income' ? 'grid' : 'none';
+}
+
+function saveTx() {
+  const amt = parseInt($('#f-amt').value);
+  if(!amt || amt <= 0) return toast('Vui lòng nhập số tiền hợp lệ');
+  
+  const type = $('#f-type').value;
+  const cat = $('#f-cat').value;
+  const txs = get('transactions') || [];
+  const newTx = {
+    id: genId('tx'),
+    date: new Date($('#f-date').value).toISOString(),
+    type: type,
+    amount: amt,
+    category: cat,
+    accountId: $('#f-acc').value,
+    description: $('#f-desc').value
+  };
+  
+  if (type === 'income') {
+    newTx.incomeSource = $('#f-inc-src').value;
+    newTx.triggerAllocation = $('#f-trigger-alloc').checked;
+  }
+  
+  txs.push(newTx);
+  set('transactions', txs);
+  closeModal();
+  toast('✅ Đã lưu giao dịch thành công!');
+  
+  if (type === 'income' && newTx.triggerAllocation) {
+    if (amt >= (get('settings').minAllocationTrigger || 0)) {
+      openAllocationModal(newTx);
+      return;
+    }
+  }
+  
+  // Budget Warning Check (Soft Warning)
+  if (type === 'expense') {
+    const map = get('category_allocation_map') || {};
+    const allocId = map[cat];
+    if (allocId) {
+      const b = computeMonthlyBucket(allocId, new Date().toISOString().slice(0, 7));
+      if (b.utilizationRate >= 85) {
+        setTimeout(() => toast(`⚠️ Hũ <b>${b.bucket.name}</b> đã dùng ${b.utilizationRate.toFixed(1)}% ngân sách. Còn lại ${fmt(b.rolloverOut)}`), 500);
+      }
+    }
+  }
+  
+  refreshAllViews();
+}
+
+function openAllocationModal(tx) {
+  const rules = get('allocation_rules').buckets;
+  openModal(`
+    <h3 class="mb-20">Phân bổ thu nhập</h3>
+    <p class="mb-20 text-mut">Bạn vừa nhận ${fmt(tx.amount)} từ ${tx.category}. Hãy phân bổ vào các hũ:</p>
+    ${rules.map(r => `
+      <div class="flex justify-between align-center mb-10">
+        <span style="color:${r.color}">${r.name} (${r.percentage}%)</span>
+        <input type="number" id="alloc-amt-${r.id}" value="${Math.round(tx.amount * r.percentage / 100)}" style="width:150px; margin:0;">
+      </div>
+    `).join('')}
+    <div class="flex justify-between mt-20">
+      <button class="btn" onclick="closeModal(); refreshAllViews()">Bỏ qua</button>
+      <button class="btn pri" onclick="closeModal(); toast('✅ Đã phân bổ'); refreshAllViews()">Xác nhận</button>
+    </div>
+  `);
+}
+
+// Check Savings Maturity on Load
+function checkSavingsMaturity() {
+  const assets = get('assets')||[];
+  const savings = assets.filter(a => a.assetType === 'savings');
+  let maturingCount = 0;
+  const now = new Date();
+  
+  savings.forEach(s => {
+    if (s.maturityDate) {
+      const mDate = new Date(s.maturityDate);
+      const diffTime = mDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays >= 0 && diffDays <= 30) maturingCount++;
+    }
+  });
+  
+  if (maturingCount > 0) {
+    setTimeout(() => toast(`⏰ Bạn có <b>${maturingCount} sổ tiết kiệm</b> sắp đáo hạn trong 30 ngày tới.`), 2000);
+  }
+}
+checkSavingsMaturity();
+
+// Init
+buildLayout();
+refreshAllViews();
+
+</script>
+</body>
+</html>
