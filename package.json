@@ -1,0 +1,17 @@
+{
+  "name": "wealth-html-app",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Ứng dụng quản lý tài sản cá nhân (vanilla JS, chạy hoàn toàn trên trình duyệt, lưu localStorage).",
+  "type": "module",
+  "scripts": {
+    "serve": "python3 -m http.server 8765",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "check": "node --check app.js && node --check state.js && node --check computations.js && node --check sample-data.js",
+    "smoke": "node test.js",
+    "screenshot": "node test-screenshot.js"
+  },
+  "devDependencies": {
+    "puppeteer": "24.42.0"
+  }
+}

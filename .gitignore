@@ -1,0 +1,4 @@
+node_modules/
+.DS_Store
+_upd_tmp.mjs
+*.log

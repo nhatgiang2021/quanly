@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="nk-grad" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5e6ad2" />
+      <stop offset="100%" stop-color="#27a644" />
+    </linearGradient>
+    <linearGradient id="nk-bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#020617" flood-opacity="0.6" />
+    </filter>
+  </defs>
+  <rect width="128" height="128" rx="32" fill="url(#nk-bg)"/>
+  <rect x="2" y="2" width="124" height="124" rx="30" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+  <text x="64" y="86" font-family="'Outfit', 'Inter', 'Aptos', sans-serif" font-weight="800" font-size="56" fill="url(#nk-grad)" filter="url(#shadow)" text-anchor="middle" letter-spacing="-1">NK</text>
+</svg>
